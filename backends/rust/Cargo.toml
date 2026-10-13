@@ -1,0 +1,49 @@
+[package]
+name    = "kh-sim-rust"
+version = "0.1.0"
+edition = "2021"
+description = "KH instability simulation — Rust/axum backend (KH-003)"
+
+[lib]
+name = "kh_sim_rust"
+path = "src/lib.rs"
+
+[[bin]]
+name = "kh-sim-rust"
+path = "src/main.rs"
+
+[dependencies]
+# HTTP framework
+axum        = { version = "0.7", features = ["json"] }
+tokio       = { version = "1",   features = ["full"] }
+tower-http  = { version = "0.5", features = ["cors", "trace"] }
+
+# Serialisation
+serde       = { version = "1",   features = ["derive"] }
+serde_json  = "1"
+
+# FFT
+rustfft     = "6"
+num-complex = "0.4"
+
+# Error handling / logging
+anyhow          = "1"
+tracing         = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+# Golden-vector integration test (tests/golden_vectors.rs) +
+# phase-7d physics testbeds + phase-7f canonical-physics testbeds.
+# All three share the same HTTP-client deps (no new crates -> disk-safe; KB-077).
+serde_json = "1"
+reqwest    = { version = "0.12", features = ["blocking", "json"] }
+
+# Phase 7f canonical-physics testbeds (tests/canonical_physics.rs).
+[[test]]
+name    = "canonical_physics"
+path    = "tests/canonical_physics.rs"
+harness = true
+
+[profile.release]
+opt-level = 3
+lto       = "thin"

@@ -1,0 +1,188 @@
+% Canonical equation -- KH instability governing equations (KH-GE)
+% kh-sim canonical-equations / v0.1
+% Companion to kh-governing-equations.md
+% Bibliography: ../reference-bibliography/refs.bib
+% Licence: CC-BY-SA-4.0 (this document is documentation, not code)
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{../reference-bibliography/refs.bib}
+
+\geometry{margin=2.4cm}
+
+\title{Canonical equations:\\ Kelvin--Helmholtz governing system}
+\author{kh-sim project}
+\date{v0.1 -- 2026-05-12}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+\maketitle
+
+This document is the canonical statement of what kh-sim simulates.
+Every backend in \texttt{backends/\{rust,scala,cpp,fortran,pascal\}}
+implements Equations~\eqref{eq:khge1}--\eqref{eq:khge5} as a
+line-by-line port; the Python reference at
+\texttt{shared/physics/kh\_physics.py} is the most direct rendering.
+
+\section{Vorticity transport (Eq.\ KH-GE-1)}
+
+\begin{definition}[2D incompressible Navier--Stokes, vorticity form]
+Let $\Omega = [0, L_x] \times [0, L_y]$ be a doubly periodic
+rectangular domain. Let $(u, v)\colon \Omega \times \mathbb{R}_+ \to
+\mathbb{R}^2$ be the velocity field and $\omega\colon \Omega \times
+\mathbb{R}_+ \to \mathbb{R}$ the scalar (out-of-plane) vorticity.
+The vorticity-transport equation in 2D is
+\begin{equation}
+\label{eq:khge1}
+\frac{\partial \omega}{\partial t}
++ u\,\frac{\partial \omega}{\partial x}
++ v\,\frac{\partial \omega}{\partial y}
+= \nu\,\left(\frac{\partial^2 \omega}{\partial x^2} + \frac{\partial^2 \omega}{\partial y^2}\right)
+\tag{KH-GE-1}
+\end{equation}
+where the scalar vorticity is
+\[
+\omega = \frac{\partial v}{\partial x} - \frac{\partial u}{\partial y}
+\]
+(the only non-trivial component in 2D), and the kinematic viscosity
+$\nu$ is set by the Reynolds number~Re and the characteristic shear
+velocity~$U_0$ via $\nu = U_0/\mathrm{Re}$.
+\end{definition}
+
+\section{Streamfunction Poisson equation (Eq.\ KH-GE-2)}
+
+\begin{proposition}[Streamfunction recovers vorticity]
+For an incompressible 2D flow, there exists a streamfunction
+$\psi\colon \Omega \times \mathbb{R}_+ \to \mathbb{R}$ such that
+\begin{equation}
+\label{eq:khge2}
+\frac{\partial^2 \psi}{\partial x^2} + \frac{\partial^2 \psi}{\partial y^2}
+= -\,\omega.
+\tag{KH-GE-2}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Define $u := \partial \psi / \partial y$ and $v := -\partial \psi /
+\partial x$ (Eq.\ \eqref{eq:khge3} below). Then
+$\partial u/\partial x + \partial v/\partial y =
+\partial^2 \psi / \partial x \partial y -
+\partial^2 \psi / \partial y \partial x = 0$, so continuity is
+satisfied identically. Substituting into the definition of $\omega$:
+\begin{align*}
+\omega
+ &= \frac{\partial v}{\partial x} - \frac{\partial u}{\partial y}
+  = -\frac{\partial^2 \psi}{\partial x^2} - \frac{\partial^2 \psi}{\partial y^2}
+  = -\nabla^2 \psi.
+\end{align*}
+Rearranging gives \eqref{eq:khge2}.
+\qed
+\end{proof}
+
+\section{Velocity recovery (Eq.\ KH-GE-3)}
+
+\begin{equation}
+\label{eq:khge3}
+u = \frac{\partial \psi}{\partial y},
+\qquad
+v = -\frac{\partial \psi}{\partial x}.
+\tag{KH-GE-3}
+\end{equation}
+
+\section{Initial conditions (Eq.\ KH-GE-4)}
+
+\begin{definition}[kh-sim canonical initial conditions]
+The initial velocity field is a hyperbolic-tangent shear layer
+centred at $y = L_y/2$ with a sinusoidal $v$-perturbation in $x$:
+\begin{align*}
+u(x, y, 0) &= -\,U_0\,\tanh\!\left(\frac{y - L_y/2}{\delta}\right),\\
+v(x, y, 0) &= A\,\sin\!\left(\frac{2\pi k\,x}{L_x}\right).
+\end{align*}
+The corresponding initial vorticity (analytically from
+$\omega = \partial v/\partial x - \partial u/\partial y$) is
+\begin{equation}
+\label{eq:khge4}
+\omega(x, y, 0) =
+A\,\frac{2\pi k}{L_x}\,\cos\!\left(\frac{2\pi k\,x}{L_x}\right)
++ \frac{U_0}{\delta}\,\operatorname{sech}^2\!\left(\frac{y - L_y/2}{\delta}\right).
+\tag{KH-GE-4}
+\end{equation}
+For $U_0 > 0$ the upper stream moves in $-x$ and the lower one in $+x$.
+The default kh-sim parameters are listed in Table~\ref{tab:defaults}.
+\end{definition}
+
+\noindent\emph{Corrected 2026-10-12 (v0.1.1): the sign of $u$. The vorticity
+(\ref{eq:khge4}) is the one every backend has always computed and every golden
+vector holds; with $\omega = \partial v/\partial x - \partial u/\partial y$ it
+belongs to $u = -U_0\tanh$, not to $+U_0\tanh$ as v0.1 wrote. The two are mirror
+images; the linear stability (KH-LS) is invariant under the reflection.}
+
+\begin{table}[h]
+\centering
+\caption{kh-sim default initial-condition parameters.}
+\label{tab:defaults}
+\begin{tabular}{lll}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} & \textbf{Default} \\
+\midrule
+$L_x$ & domain length              & 1.0 \\
+$L_y$ & domain height              & 0.5 \\
+$U_0$ & shear velocity             & 1.0 \\
+Re    & Reynolds number            & 1000 \\
+$A$   & perturbation amplitude     & 0.01 \\
+$k$   & perturbation mode          & 2 \\
+$\delta$ & shear-layer thickness   & $0.05 \cdot L_y$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Boundary conditions (Eq.\ KH-GE-5)}
+
+The domain is doubly periodic:
+\begin{equation}
+\label{eq:khge5}
+\omega(0, y, t) = \omega(L_x, y, t),
+\quad
+\omega(x, 0, t) = \omega(x, L_y, t),
+\tag{KH-GE-5}
+\end{equation}
+and equivalently for $\psi$. Doubly periodic BCs are exact for the
+Fourier basis used by the pseudo-spectral discretisation
+(see companion document \texttt{kh-numerical-methods.tex}).
+
+\section{Notes on equation choice}
+
+The vorticity-streamfunction formulation eliminates pressure as an
+explicit variable and enforces incompressibility identically by
+construction (proof above). For 2D problems it is the canonical form
+for two reasons:
+\begin{enumerate}
+\item Pressure does not appear, so the pressure Poisson equation is
+      avoided (significant for spectral methods, where the pressure
+      Poisson with arbitrary BCs requires extra care).
+\item Vorticity is the natural diagnostic of rotational fluid motion,
+      and for the Kelvin--Helmholtz instability the visible rolling
+      billows are vorticity concentrations.
+\end{enumerate}
+The trade-off is that pressure must be recovered separately if needed
+for visualisation or coupling to other physics (kh-sim exposes the
+streamfunction $\psi$ as a pressure surrogate in the REST API
+response; the true pressure field can be reconstructed via the
+pressure Poisson equation $\nabla^2 p = -2(u_x v_y - u_y v_x)$).
+
+For the inviscid linear-stability analysis of the tanh shear profile,
+see companion document \texttt{kh-linear-stability.tex}.
+
+\printbibliography
+
+\end{document}

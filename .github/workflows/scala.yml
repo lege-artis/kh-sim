@@ -1,0 +1,58 @@
+name: Scala reference build + test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backends/scala/**'
+      - '.github/workflows/scala.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backends/scala/**'
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    name: Scala/http4s + JTransforms build + tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java (Temurin 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Cache sbt
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.sbt
+            ~/.ivy2/cache
+            ~/.coursier/cache
+          key: ${{ runner.os }}-sbt-${{ hashFiles('backends/scala/build.sbt') }}
+          restore-keys: |
+            ${{ runner.os }}-sbt-
+
+      - name: Compile
+        working-directory: backends/scala
+        run: sbt compile
+
+      - name: Run tests
+        working-directory: backends/scala
+        run: sbt test
+
+      - name: Build status summary
+        if: always()
+        run: |
+          echo "======================================================="
+          echo "Scala backend status"
+          echo "  Java: $(java -version 2>&1 | head -1)"
+          echo "  FFT:  JTransforms 2x-factor (library-backed -- C1/C4 exempt per doctrine)"
+          echo "  Framework: http4s + cats-effect"
+          echo "  Wave-1 anchor: golden-vector matrix at machine precision"
+          echo "======================================================="

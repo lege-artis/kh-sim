@@ -1,0 +1,51 @@
+{
+  "schema": "nr1986-pascal-ch19/v1",
+  "source": {
+    "title": "Numerical Recipes in Pascal: The Art of Scientific Computing",
+    "authors": "Press, Flannery, Teukolsky, Vetterling",
+    "publisher": "Cambridge University Press",
+    "year_printing": "1989 (main text, 1st Pascal ed, ISBN 9780521375160); 1990 (companion Numerical Recipes Example Book (Pascal))",
+    "chapter": "17",
+    "section": "17.5",
+    "pages": ["main text 17.5 (Relaxation Methods for Boundary Value Problems), pp.710-717", "Example Book (Pascal) driver d17r1 + printed SOR solution grid, pp.217-219"],
+    "example_name": "d17r1 (driver for routine SOR) -- printed 'SOR solution grid'",
+    "example_book": "true"
+  },
+  "problem": {
+    "type": "poisson-dirichlet-sor",
+    "grid_nx": 11,
+    "grid_ny": 11,
+    "domain": "square lattice, jmax=11 incl. boundary (interior 9x9); unit lattice spacing h=1 in the driver's dimensionless difference equation",
+    "boundary": "dirichlet-zero",
+    "rhs_or_ic_formula": "discrete 5-point Poisson: u[i+1,j]+u[i-1,j]+u[i,j+1]+u[i,j-1]-4*u[i,j] = f[i,j]; coefficients A=B=C=D=1.0, E=-4.0; source f=0 everywhere except f[6,6]=2.0 (1-based centerpoint, midl=(11 div 2)+1=6); u=0 on all boundary nodes",
+    "params": {
+      "source_value": 2.0,
+      "source_i_1based": 6,
+      "source_j_1based": 6,
+      "rjac_spectral_radius": "cos(pi/11) ~= 0.95949",
+      "_note": "Driver d17r1 uses SOR with Chebyshev acceleration; the printed grid is the converged solution and equals the exact discrete-Poisson solution to the book's 2-decimal print (cross-checked to machine precision in Python, 2026-06-17)."
+    }
+  },
+  "expected": {
+    "printed_precision_sig_figs": "2 decimal places (Pascal :7:2 format); ~3 sig figs at the centerpoint, ~2 sig figs on the inner rings",
+    "tolerance_rel": 2.0e-2,
+    "_gate_note": "Printed-precision-limited gate (OQ-7F-PAS-01 documented exception). The book prints 2 decimals, so backend-vs-book relative error is bounded by 0.005/|value|: <=1.25% on the selected |value|>=0.40 points, <=1.8% on the -0.28 points. 2.0e-2 leaves headroom. The underlying exact discrete solution agrees to machine precision (Python cross-check), so a tight-gate variant is available if the test asserts against the exact discrete solve rather than the printed values.",
+    "sample_points": [
+      { "i": 6, "j": 6, "value": -1.05, "note": "1-based Pascal index; centerpoint u[6,6]; on both symmetry axes; book :7:2 = -1.05" },
+      { "i": 5, "j": 5, "value": -0.41, "note": "1-based; off-axis interior; book -0.41" },
+      { "i": 5, "j": 7, "value": -0.41, "note": "1-based; off-axis interior; book -0.41" },
+      { "i": 7, "j": 5, "value": -0.41, "note": "1-based; off-axis interior; book -0.41" },
+      { "i": 7, "j": 7, "value": -0.41, "note": "1-based; off-axis interior; book -0.41" },
+      { "i": 5, "j": 4, "value": -0.28, "note": "1-based; off-axis interior; book -0.28" },
+      { "i": 4, "j": 5, "value": -0.28, "note": "1-based; off-axis interior; book -0.28" },
+      { "i": 8, "j": 7, "value": -0.28, "note": "1-based; off-axis interior (mirror of (4,5) region); book -0.28" },
+      { "i": 5, "j": 6, "value": -0.55, "note": "1-based; on vertical center axis j=6; second-largest magnitude; book -0.55" },
+      { "i": 6, "j": 5, "value": -0.55, "note": "1-based; on horizontal center axis i=6; book -0.55" }
+    ],
+    "integrals": [
+      { "name": "laplacian_residual_at_center", "value": 2.0 }
+    ]
+  },
+  "transcribed_by": "Pete (via Claude-assisted extraction from physical office copies; numeric values + bibliographic pointers only, no copyrighted prose/code)",
+  "date": "2026-06-17"
+}

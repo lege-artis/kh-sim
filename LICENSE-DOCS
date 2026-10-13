@@ -1,0 +1,22 @@
+# Documentation license -- CC-BY-SA-4.0
+
+The prose-only contents of this repository -- specifically:
+
+* `docs/canonical/**`
+* `docs/engineer/**`
+* `docs/shad/**`
+* Any other Markdown document not directly accompanying source code
+
+are licensed under the **Creative Commons Attribution-ShareAlike 4.0
+International License (CC-BY-SA-4.0)**.
+
+* Full legal text: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+* Summary: https://creativecommons.org/licenses/by-sa/4.0/
+
+Code in this repository (everything not covered by this LICENSE-DOCS) is
+licensed separately under the Apache License, Version 2.0 -- see `LICENSE`.
+
+Source citations: documents that cite published works (e.g. Orszag 1971,
+Numerical Recipes, Drazin-Reid) are held to academic attribution standards;
+CC-BY-SA-4.0 attribution requirements are an additional overlay, not a
+replacement.

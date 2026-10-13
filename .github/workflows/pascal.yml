@@ -1,0 +1,59 @@
+name: Pascal reference build + test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backends/pascal/**'
+      - '.github/workflows/pascal.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backends/pascal/**'
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    name: Pascal canonical pedagogical reference build + tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Free Pascal Compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fpc
+          fpc -iV
+
+      - name: Build server, validation and canonical test
+        working-directory: backends/pascal
+        run: make server validate canonical
+
+      # Built without range checks, as the server is: the guards must hold where
+      # an out-of-range write would otherwise pass silently.
+      - name: Build solver-guard test
+        working-directory: backends/pascal
+        run: |
+          mkdir -p build/guards
+          fpc -O2 -Fusrc -FUbuild/guards -FEbuild/guards tests/test_solver_guards.pas
+
+      - name: Run tests
+        working-directory: backends/pascal
+        run: |
+          ./build/kh_validate ../../shared/golden-vectors/v1-canonical-reference.json
+          ./build/test_canonical_physics
+          ./build/guards/test_solver_guards
+
+      - name: Build status summary
+        if: always()
+        run: |
+          echo "======================================================="
+          echo "Pascal canonical pedagogical reference backend status"
+          echo "  Compiler: fpc $(fpc -iV)"
+          echo "  FFT:      hand-rolled (canonical pedagogical per doctrine sec 3.3)"
+          echo "  NR-1986 Pascal edition is the direct historical anchor"
+          echo "  C1/C2/C3/C4 all apply -- strict textbook-verbatim discipline"
+          echo "  Wave-1 anchor: golden-vector matrix at machine precision"
+          echo "======================================================="

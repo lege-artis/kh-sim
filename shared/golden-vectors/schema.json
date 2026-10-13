@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kh-sim-golden-vector-v1",
+  "title": "kh-sim golden vector",
+  "description": "JSON Schema for a single kh-sim golden vector file. Per phase 6a design §5.",
+  "type": "object",
+  "required": ["$schema", "metadata", "parameters", "diagnostics", "field_summaries", "tolerances"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "kh-sim-golden-vector-v1"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "vector_id", "purpose", "generation_date", "oracle_commit",
+        "oracle_path", "scheme", "dealiasing", "cfl_guard", "environment"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "vector_id":       { "type": "string" },
+        "purpose":         { "type": "string" },
+        "generation_date": { "type": "string", "description": "ISO-8601 UTC timestamp" },
+        "oracle_commit":   { "type": "string" },
+        "oracle_path":     { "type": "string" },
+        "scheme":          { "type": "string" },
+        "dealiasing":      { "type": "string" },
+        "cfl_guard":       { "type": "string" },
+        "environment": {
+          "type": "object",
+          "required": ["python", "numpy", "scipy"],
+          "additionalProperties": false,
+          "properties": {
+            "python": { "type": "string" },
+            "numpy":  { "type": "string" },
+            "scipy":  { "type": "string" }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "required": [
+        "grid_nx", "grid_ny", "domain_lx", "domain_ly", "dt", "nsteps",
+        "reynolds_number", "velocity_shear", "perturbation_amplitude", "perturbation_mode"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "grid_nx":                { "type": "integer", "minimum": 1 },
+        "grid_ny":                { "type": "integer", "minimum": 1 },
+        "domain_lx":              { "type": "number",  "exclusiveMinimum": 0 },
+        "domain_ly":              { "type": "number",  "exclusiveMinimum": 0 },
+        "dt":                     { "type": "number",  "exclusiveMinimum": 0 },
+        "nsteps":                 { "type": "integer", "minimum": 1 },
+        "reynolds_number":        { "type": "number",  "exclusiveMinimum": 0 },
+        "velocity_shear":         { "type": "number" },
+        "perturbation_amplitude": { "type": "number",  "minimum": 0 },
+        "perturbation_mode":      { "type": "integer", "minimum": 0 }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "required": [
+        "kinetic_energy", "enstrophy", "max_vorticity",
+        "divergence_rms", "cfl_peak", "t_final"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kinetic_energy":  { "type": "number", "minimum": 0 },
+        "enstrophy":       { "type": "number", "minimum": 0 },
+        "max_vorticity":   { "type": "number", "minimum": 0 },
+        "divergence_rms":  { "type": "number", "minimum": 0 },
+        "cfl_peak":        { "type": "number", "minimum": 0 },
+        "t_final":         { "type": "number", "minimum": 0 }
+      }
+    },
+    "field_summaries": {
+      "type": "object",
+      "required": ["u_velocity", "v_velocity", "vorticity", "pressure"],
+      "additionalProperties": false,
+      "properties": {
+        "u_velocity": { "$ref": "#/$defs/field_summary" },
+        "v_velocity": { "$ref": "#/$defs/field_summary" },
+        "vorticity":  { "$ref": "#/$defs/field_summary" },
+        "pressure":   { "$ref": "#/$defs/field_summary" }
+      }
+    },
+    "tolerances": {
+      "type": "object",
+      "required": [
+        "scalar_abs", "scalar_rel",
+        "scalar_div_rms_abs", "scalar_div_rms_rel",
+        "field_summary_abs", "field_summary_rel",
+        "field_element_abs", "field_element_rel",
+        "sqrt_n_scaling", "backend_overrides"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scalar_abs":           { "type": "number", "exclusiveMinimum": 0 },
+        "scalar_rel":           { "type": "number", "exclusiveMinimum": 0 },
+        "scalar_div_rms_abs":   { "type": "number", "exclusiveMinimum": 0 },
+        "scalar_div_rms_rel":   { "type": "number", "exclusiveMinimum": 0 },
+        "field_summary_abs":    { "type": "number", "exclusiveMinimum": 0 },
+        "field_summary_rel":    { "type": "number", "exclusiveMinimum": 0 },
+        "field_element_abs":    { "type": "number", "exclusiveMinimum": 0 },
+        "field_element_rel":    { "type": "number", "exclusiveMinimum": 0 },
+        "sqrt_n_scaling":       { "type": "boolean" },
+        "backend_overrides": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "scalar_factor": { "type": "number", "exclusiveMinimum": 0 },
+              "field_factor":  { "type": "number", "exclusiveMinimum": 0 },
+              "skip":          { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "field_summary": {
+      "type": "object",
+      "required": ["length", "first_10", "last_10", "min", "max", "mean"],
+      "additionalProperties": false,
+      "properties": {
+        "length":   { "type": "integer", "minimum": 1 },
+        "first_10": { "type": "array", "items": { "type": "number" }, "minItems": 1, "maxItems": 10 },
+        "last_10":  { "type": "array", "items": { "type": "number" }, "minItems": 1, "maxItems": 10 },
+        "min":      { "type": "number" },
+        "max":      { "type": "number" },
+        "mean":     { "type": "number" }
+      }
+    }
+  }
+}

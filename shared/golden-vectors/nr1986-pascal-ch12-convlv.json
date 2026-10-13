@@ -1,0 +1,56 @@
+{
+  "schema": "nr1986-pascal-ch19/v1",
+  "source": {
+    "title": "Numerical Recipes in Pascal: The Art of Scientific Computing",
+    "authors": "Press, Flannery, Teukolsky, Vetterling",
+    "publisher": "Cambridge University Press",
+    "year_printing": "1989 (main text, 1st Pascal ed, ISBN 9780521375160); 1990 (companion Numerical Recipes Example Book (Pascal))",
+    "chapter": "12",
+    "section": "12.4",
+    "pages": ["main text 12.4 (Convolution and Deconvolution Using the FFT)", "Example Book (Pascal) driver d12r6 (driver for routine CONVLV), pp.154-155"],
+    "example_name": "d12r6 (driver for routine CONVLV) -- FFT convolution vs direct-method 'Expected'",
+    "example_book": "true"
+  },
+  "problem": {
+    "type": "fft-cyclic-convolution",
+    "grid_nx": 16,
+    "grid_ny": 1,
+    "domain": "1-D, n=16 samples, cyclic (periodic) convolution via FFT (four1 + realft + twofft chain)",
+    "boundary": "periodic",
+    "rhs_or_ic_formula": "data[i]=1.0 for 6<=i<=10 (i.e. n/2-n/8 .. n/2+n/8), else 0.0 (16 values, 1-based); respns[i]=1.0 for 3<=i<=6, else 0.0 (m=9, 1-based, NR wrap-around lag convention); ans = cyclic convolution of data with respns",
+    "params": {
+      "n_data": 16,
+      "m_response": 9,
+      "isign": 1,
+      "_note": "Expected values are the example's exact direct-convolution result (book's own cmp[] loop), integer-valued and hand-verifiable; reproduced by independent NumPy FFT cyclic convolution to <1e-12 (Python cross-check 2026-06-17). Bare four1 ships NO printed numeric table in the Example Book; convlv is the FFT-family example whose expected output is exactly determined by the book's specified input + direct method."
+    }
+  },
+  "expected": {
+    "printed_precision_sig_figs": "exact (integer-valued convolution; book prints :15:6 / :12:6 but the values are exact integers)",
+    "tolerance_rel": 1.0e-6,
+    "_gate_note": "Tight gate: expected values are exact integers; backend error is FFT round-off only (~1e-12 at n=16). 1e-6 is conservative headroom.",
+    "sample_points": [
+      { "i": 1,  "j": 1, "value": 0.0, "note": "1-based channel index, ans[1]" },
+      { "i": 2,  "j": 1, "value": 1.0, "note": "ans[2]" },
+      { "i": 3,  "j": 1, "value": 1.0, "note": "ans[3]" },
+      { "i": 4,  "j": 1, "value": 1.0, "note": "ans[4]" },
+      { "i": 5,  "j": 1, "value": 1.0, "note": "ans[5]" },
+      { "i": 6,  "j": 1, "value": 1.0, "note": "ans[6]" },
+      { "i": 7,  "j": 1, "value": 0.0, "note": "ans[7]" },
+      { "i": 8,  "j": 1, "value": 1.0, "note": "ans[8]" },
+      { "i": 9,  "j": 1, "value": 2.0, "note": "ans[9]" },
+      { "i": 10, "j": 1, "value": 3.0, "note": "ans[10]; convolution plateau peak" },
+      { "i": 11, "j": 1, "value": 3.0, "note": "ans[11]; plateau" },
+      { "i": 12, "j": 1, "value": 3.0, "note": "ans[12]; plateau" },
+      { "i": 13, "j": 1, "value": 2.0, "note": "ans[13]" },
+      { "i": 14, "j": 1, "value": 1.0, "note": "ans[14]" },
+      { "i": 15, "j": 1, "value": 0.0, "note": "ans[15]" },
+      { "i": 16, "j": 1, "value": 0.0, "note": "ans[16]" }
+    ],
+    "integrals": [
+      { "name": "sum_ans", "value": 20.0 }
+    ]
+  },
+  "transcribed_by": "Pete (via Claude-assisted extraction from physical office copies; numeric values + bibliographic pointers only, no copyrighted prose/code)",
+  "date": "2026-06-17"
+}

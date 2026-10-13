@@ -1,0 +1,189 @@
+% kh-sim canonical bibliography
+% Vetted against RESOURCES-kh-research.md
+% Cited by:
+%   shared/canonical-equations/kh-governing-equations.tex
+%   shared/canonical-equations/kh-numerical-methods.tex
+%   shared/canonical-equations/kh-linear-stability.tex
+
+% ==== Primary historical sources ============================================
+
+@article{Kelvin1871,
+    author       = {Thomson, William},
+    title        = {Hydrokinetic Solutions and Observations},
+    journal      = {Philosophical Magazine},
+    volume       = {42},
+    pages        = {362--377},
+    year         = {1871},
+    note         = {Sir William Thomson (Lord Kelvin). Original derivation of the
+                    inviscid Kelvin--Helmholtz instability for two fluids of
+                    different densities separated by a flat interface in
+                    horizontal velocity shear.},
+}
+
+@article{Helmholtz1868,
+    author       = {von Helmholtz, Hermann},
+    title        = {{\"U}ber discontinuierliche Fl{\"u}ssigkeitsbewegungen},
+    journal      = {Monatsberichte der K{\"o}niglichen Akademie der
+                    Wissenschaften zu Berlin},
+    pages        = {215--228},
+    year         = {1868},
+    note         = {Earlier general treatment of discontinuous fluid motion
+                    that supplies the ``Helmholtz'' half of the eponymous
+                    instability name.},
+}
+
+% ==== Modern theory texts ==================================================
+
+@book{DrazinReid2004,
+    author       = {Drazin, P. G. and Reid, W. H.},
+    title        = {Hydrodynamic Stability},
+    edition      = {2},
+    publisher    = {Cambridge University Press},
+    year         = {2004},
+    isbn         = {978-0521525411},
+    note         = {Chapter 4 treats the Kelvin-Helmholtz instability in full
+                    detail, including viscous corrections and the dispersion
+                    relation for the tanh shear profile (\S 4.5) that kh-sim
+                    uses as initial condition.},
+}
+
+@book{Chandrasekhar1981,
+    author       = {Chandrasekhar, S.},
+    title        = {Hydrodynamic and Hydromagnetic Stability},
+    publisher    = {Dover Publications},
+    year         = {1981},
+    isbn         = {978-0486640716},
+    note         = {Reprint of the 1961 Oxford edition. Definitive classical
+                    treatment of stratified-fluid instabilities including KH.},
+}
+
+@book{SchmidHenningson2001,
+    author       = {Schmid, Peter J. and Henningson, Dan S.},
+    title        = {Stability and Transition in Shear Flows},
+    publisher    = {Springer},
+    year         = {2001},
+    isbn         = {978-0387989853},
+    note         = {Modern numerical-spectral-method-friendly treatment.
+                    Chapter 3 covers free shear layers including KH with
+                    explicit benchmark cases (growth rates as a function of
+                    wavenumber for given Reynolds number) suitable for direct
+                    property-test fixtures.},
+}
+
+% ==== Numerical-method references ==========================================
+
+@book{Boyd2001,
+    author       = {Boyd, John P.},
+    title        = {Chebyshev and Fourier Spectral Methods},
+    edition      = {2},
+    publisher    = {Dover Publications},
+    year         = {2001},
+    isbn         = {978-0486411835},
+    note         = {Free PDF: http://www-personal.umich.edu/~jpboyd/BOOK\_Spectral2000.html.
+                    Chapters 1, 2, 4, 11 cover Fourier discretisation,
+                    aliasing and the 2/3-rule, and time-stepping for spectral
+                    discretisations.},
+}
+
+@book{Trefethen2000,
+    author       = {Trefethen, Lloyd N.},
+    title        = {Spectral Methods in {MATLAB}},
+    publisher    = {SIAM},
+    year         = {2000},
+    isbn         = {978-0898714654},
+    note         = {Code-first treatment. Worked examples for 2D Poisson via
+                    FFT.},
+}
+
+@book{CanutoHussainiQuarteroniZang2006,
+    author       = {Canuto, C. and Hussaini, M. Y. and Quarteroni, A. and Zang, T. A.},
+    title        = {Spectral Methods: Fundamentals in Single Domains},
+    publisher    = {Springer},
+    year         = {2006},
+    isbn         = {978-3540307259},
+}
+
+@article{CoxMatthews2002,
+    author       = {Cox, S. M. and Matthews, P. C.},
+    title        = {Exponential Time Differencing for Stiff Systems},
+    journal      = {Journal of Computational Physics},
+    volume       = {176},
+    pages        = {430--455},
+    year         = {2002},
+    doi          = {10.1006/jcph.2002.6995},
+    note         = {Seminal ETDRK4 paper. Defines the scheme used by kh-sim's
+                    Fortran backend (\texttt{kh\_etdrk4.f90}). Treats time
+                    integration for systems with a stiff linear part (viscous
+                    diffusion) and a non-stiff non-linear part (vorticity
+                    advection).},
+}
+
+@article{KassamTrefethen2005,
+    author       = {Kassam, Aly-Khan and Trefethen, Lloyd N.},
+    title        = {Fourth-Order Time-Stepping for Stiff {PDEs}},
+    journal      = {SIAM Journal on Scientific Computing},
+    volume       = {26},
+    pages        = {1214--1233},
+    year         = {2005},
+    doi          = {10.1137/S1064827502410633},
+    note         = {Improves the contour-integral evaluation of the ETDRK4
+                    coefficients for numerical stability. The implementation
+                    pattern most modern ETDRK4 codes follow.},
+}
+
+@article{Orszag1971,
+    author       = {Orszag, Steven A.},
+    title        = {On the Elimination of Aliasing in Finite-Difference
+                    Schemes by Filtering High-Wavenumber Components},
+    journal      = {Journal of the Atmospheric Sciences},
+    volume       = {28},
+    pages        = {1074},
+    year         = {1971},
+    doi          = {10.1175/1520-0469(1971)028<1074:OTEOAI>2.0.CO;2},
+    note         = {The 2/3-rule dealiasing paper. Directly traceable from
+                    kh-sim's \texttt{test\_num\_005\_dealias.f90}.},
+}
+
+@book{HairerNorsettWanner1993,
+    author       = {Hairer, E. and N{\o}rsett, S. P. and Wanner, G.},
+    title        = {Solving Ordinary Differential Equations I: Nonstiff Problems},
+    edition      = {2},
+    publisher    = {Springer},
+    year         = {1993},
+    isbn         = {978-3540566700},
+    note         = {Standard reference for the classical 4th-order
+                    Runge-Kutta scheme used by kh-sim's Python reference
+                    kernel and Rust backend.},
+}
+
+@book{Succi2001,
+    author       = {Succi, Sauro},
+    title        = {The Lattice Boltzmann Equation for Fluid Dynamics and Beyond},
+    publisher    = {Oxford University Press},
+    year         = {2001},
+    isbn         = {978-0198503989},
+    note         = {Retained as historical reference: kh-sim's March 2026
+                    exercise version used D2Q9 BGK lattice Boltzmann before
+                    the pivot to vorticity-streamfunction pseudo-spectral.},
+}
+
+@article{ChenDoolen1998,
+    author       = {Chen, Shiyi and Doolen, Gary D.},
+    title        = {Lattice Boltzmann Method for Fluid Flows},
+    journal      = {Annual Review of Fluid Mechanics},
+    volume       = {30},
+    pages        = {329--364},
+    year         = {1998},
+    doi          = {10.1146/annurev.fluid.30.1.329},
+}
+
+% ==== IEEE / numerical-precision references =================================
+
+@misc{IEEE754_2019,
+    author       = {{IEEE}},
+    title        = {{IEEE} Standard for Floating-Point Arithmetic},
+    howpublished = {IEEE Std 754-2019, IEEE Computer Society},
+    year         = {2019},
+    note         = {Defines binary64 (double precision) used by kh-sim
+                    reference kernels and all backends.},
+}

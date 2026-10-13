@@ -1,0 +1,43 @@
+[project]
+name = "kh-sim"
+version = "0.1.0-pre"
+description = "Kelvin-Helmholtz 2D incompressible Navier-Stokes solver — canonical RK4 with 2/3-rule dealiasing + CFL guard; Python reference oracle + 5 polyglot backends."
+readme = "README.md"
+requires-python = ">=3.13"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "lege-artis", email = "noreply@lege-artis.org"}
+]
+
+dependencies = [
+    "numpy>=2.4,<3.0",
+    "scipy>=1.17,<2.0",
+]
+
+[project.optional-dependencies]
+golden = [
+    "jsonschema>=4.26",
+]
+test = [
+    "pytest>=8.0",
+    "pytest-xdist>=3.5",
+    "requests>=2.31",
+    "PyYAML>=6.0",
+    "matplotlib>=3.8",
+]
+dev = [
+    "kh-sim[golden,test]",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["shared*"]
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow (multi-second physics simulations); deselect with -m 'not slow'",
+]

@@ -1,0 +1,101 @@
+# kh-sim — multi-language .gitignore
+# Covers: Python, Rust, Scala, C++, Fortran, Pascal, Node.js, React, Docker
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+.pytest_cache/
+env/
+.env
+*.egg
+
+# ── Rust ──────────────────────────────────────────────────────────────────────
+backends/rust/target/
+Cargo.lock
+
+# ── Scala / sbt ───────────────────────────────────────────────────────────────
+backends/scala/target/
+backends/scala/project/target/
+backends/scala/project/project/
+backends/scala/.bsp/
+backends/scala/.metals/
+backends/scala/.bloop/
+*.class
+*.jar
+
+# ── C++ ───────────────────────────────────────────────────────────────────────
+backends/cpp/build/
+backends/cpp/cmake-build-*/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+
+# ── Fortran ───────────────────────────────────────────────────────────────────
+backends/fortran/build/
+*.mod
+*.smod
+*.f90.bak
+
+# ── Pascal ────────────────────────────────────────────────────────────────────
+backends/pascal/build/
+*.ppu
+*.compiled
+*.bak
+*.lps
+*.lpi~
+
+# ── Node.js / log-service ─────────────────────────────────────────────────────
+log-service/node_modules/
+log-service/dist/
+log-service/.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── React / frontend ──────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.production
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+docker/.env
+docker/volumes/
+
+# ── Generated simulation output ───────────────────────────────────────────────
+# kh_reference_output.json was retired 2026-10-08 (reference = shared/golden-vectors/v1);
+# `python kh_physics.py` still writes it by default, so it must not come back by accident
+shared/physics/kh_reference_output.json
+# Ignore run-specific outputs
+reference/runs/
+_sync/
+*.run.json
+
+# ── IDE / OS ──────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Credentials / secrets ─────────────────────────────────────────────────────
+credentials.yaml
+*.key
+*.pem
+*.p12
+.env.local
+.env.production

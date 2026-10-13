@@ -1,0 +1,41 @@
+name: Rust reference build + test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backends/rust/**'
+      - '.github/workflows/rust.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backends/rust/**'
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    name: Rust/rustfft build + unit tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build (release)
+        working-directory: backends/rust
+        run: cargo build --release
+
+      - name: Run tests
+        working-directory: backends/rust
+        run: cargo test
+
+      - name: Build status summary
+        if: always()
+        run: |
+          echo "======================================================="
+          echo "Rust backend status"
+          echo "  Toolchain: $(rustc --version)"
+          echo "  Cargo:     $(cargo --version)"
+          echo "  FFT:       rustfft (library-backed -- C1/C4 exempt per doctrine)"
+          echo "  Wave-1 anchor: golden-vector matrix at machine precision"
+          echo "======================================================="

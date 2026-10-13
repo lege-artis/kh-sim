@@ -1,0 +1,245 @@
+% Canonical equation -- KH instability numerical methods (KH-NM)
+% kh-sim canonical-equations / v0.1
+% Companion to kh-numerical-methods.md
+% Bibliography: ../reference-bibliography/refs.bib
+% Licence: CC-BY-SA-4.0
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{../reference-bibliography/refs.bib}
+
+\geometry{margin=2.4cm}
+
+\title{Canonical equations:\\ Kelvin--Helmholtz numerical methods}
+\author{kh-sim project}
+\date{v0.1 -- 2026-05-12}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+\maketitle
+
+This document specifies the numerical methods that the kh-sim solver
+uses to discretise and integrate the governing equations stated in
+the companion document \texttt{kh-governing-equations.tex}
+(Eqs.~KH-GE-1..KH-GE-5). The numerical-methods specification is the
+authoritative source for the \texttt{TC-NUM-KH-001..008} test cases
+implemented in \texttt{backends/fortran/tests/test\_num\_*.f90}.
+
+\section{Pseudo-spectral spatial discretisation (Eq.\ KH-NM-1)}
+
+\begin{definition}[2D Fourier-spectral discretisation]
+Discretise $\Omega = [0, L_x] \times [0, L_y]$ on a uniform grid of
+$N_x \times N_y$ points. For a real-valued field $f$ on the grid,
+the 2D real-input FFT (\texttt{rfft2}) produces a frequency-domain
+representation $\hat f(k_x, k_y)$ on the half-grid
+$N_x \times (N_y/2 + 1)$, where the wavenumber arrays are
+\begin{align*}
+k_x &= \frac{2\pi}{L_x}\,\{0, 1, 2, \ldots, \tfrac{N_x}{2}-1, -\tfrac{N_x}{2}, \ldots, -1\},\\
+k_y &= \frac{2\pi}{L_y}\,\{0, 1, 2, \ldots, \tfrac{N_y}{2}\}.
+\end{align*}
+Spatial derivatives are diagonal in this basis:
+\begin{equation}
+\label{eq:khnm1}
+\widehat{\partial_x f} = i k_x \hat f,
+\qquad
+\widehat{\partial_y f} = i k_y \hat f,
+\qquad
+\widehat{\nabla^2 f} = -(k_x^2 + k_y^2)\,\hat f.
+\tag{KH-NM-1}
+\end{equation}
+\end{definition}
+
+\section{Spectral Poisson solver (Eq.\ KH-NM-2)}
+
+\begin{proposition}[Diagonal Poisson]
+The streamfunction Poisson equation
+$\partial_{xx}\psi + \partial_{yy}\psi = -\omega$
+(Eq.~KH-GE-2) is diagonal in the Fourier basis of \eqref{eq:khnm1}.
+The solution is
+\begin{equation}
+\label{eq:khnm2}
+\hat\psi(k_x, k_y) = \frac{\hat\omega(k_x, k_y)}{k_x^2 + k_y^2}
+\quad\text{for}\quad (k_x, k_y) \neq (0, 0),
+\qquad
+\hat\psi(0, 0) = 0.
+\tag{KH-NM-2}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Apply $\widehat{\nabla^2 f} = -(k_x^2 + k_y^2)\hat f$ to both sides
+of KH-GE-2:
+\[
+-(k_x^2 + k_y^2)\hat\psi = -\hat\omega,
+\]
+which rearranges directly. The choice $\hat\psi(0,0) = 0$ fixes the
+gauge freedom in $\psi$ (the Poisson equation determines $\psi$ only
+up to an additive constant).
+\qed
+\end{proof}
+
+This corresponds to test case \texttt{TC-NUM-KH-002}.
+
+\section{Time integration}
+
+\subsection{Canonical Runge--Kutta 4 (Eq.\ KH-NM-3a)}
+
+Writing the vorticity-transport equation KH-GE-1 abstractly as
+$\partial_t \omega = f(\omega)$ with
+\[
+f(\omega) = -u\,\partial_x \omega - v\,\partial_y \omega + \nu\,\nabla^2 \omega,
+\]
+where $u, v$ are recovered from $\omega$ via \eqref{eq:khnm2} +
+KH-GE-3, the classical 4th-order Runge--Kutta scheme advances
+$\omega$ from $t^n$ to $t^{n+1} = t^n + \Delta t$ via
+\begin{equation}
+\label{eq:khnm3a}
+\begin{aligned}
+k_1 &= f(\omega^n),\\
+k_2 &= f(\omega^n + \tfrac{1}{2}\Delta t\,k_1),\\
+k_3 &= f(\omega^n + \tfrac{1}{2}\Delta t\,k_2),\\
+k_4 &= f(\omega^n + \Delta t\,k_3),\\
+\omega^{n+1} &= \omega^n + \tfrac{\Delta t}{6}\,(k_1 + 2k_2 + 2k_3 + k_4).
+\end{aligned}
+\tag{KH-NM-3a}
+\end{equation}
+RK4 has $\mathcal{O}(\Delta t^5)$ local truncation error and
+$\mathcal{O}(\Delta t^4)$ global error in the well-resolved regime.
+This is the canonical scheme used by \texttt{shared/physics/kh\_physics.py}
+and \texttt{backends/rust/src/physics/solver.rs}. The standard reference
+is Hairer, N{\o}rsett \& Wanner~\cite{HairerNorsettWanner1993}.
+
+\subsection{Alternate ETDRK4 (Eq.\ KH-NM-3b)}
+
+When the viscous diffusion term $\nu\nabla^2\omega$ is stiff (high Re
+or under-resolved grids), the \emph{exponential time-differencing
+Runge--Kutta 4} scheme of Cox \& Matthews~\cite{CoxMatthews2002}
+handles the linear part exactly via matrix exponentiation, with
+RK4-like stages for the non-linear part. Split the equation as
+\[
+\partial_t \omega = L\,\omega + N(\omega),
+\]
+where $L = \nu\nabla^2$ is diagonal in Fourier space
+($L \leftrightarrow -\nu(k_x^2 + k_y^2)$) and
+$N(\omega) = -u\,\partial_x\omega - v\,\partial_y\omega$ is the
+non-linear advection. The ETDRK4 update is
+\begin{equation}
+\label{eq:khnm3b}
+\omega^{n+1} = e^{L\Delta t}\,\omega^n
++ \Delta t\,\bigl[\phi_1 N_1 + 2\phi_2(N_2 + N_3) + \phi_3 N_4\bigr]
+\tag{KH-NM-3b}
+\end{equation}
+where the $\phi_i$ are the standard $\phi$-functions
+(see Kassam \& Trefethen~\cite{KassamTrefethen2005} for the
+contour-integral-evaluated coefficients that stabilise the small-$L$
+limit), and $N_i$ are non-linear-term evaluations at intermediate
+stages with RK4-like sub-step structure. ETDRK4 is the scheme used by
+\texttt{backends/fortran/src/kh\_etdrk4.f90}.
+
+The two schemes \eqref{eq:khnm3a} and \eqref{eq:khnm3b} produce
+identical solutions in the limit of well-resolved grids and modest
+Reynolds numbers, but diverge in stiff regimes. The kh-sim project
+flags this as a known disambiguation question
+(AUDIT-kh-sim-2026-05-12 §6.1). Test cases
+\texttt{TC-NUM-KH-003} (ETDRK4 on linear scalar ODE) and
+\texttt{TC-NUM-KH-004} (temporal convergence order $4$) anchor the
+ETDRK4 implementation.
+
+\section{Aliasing control: 2/3-rule (Eq.\ KH-NM-4)}
+
+\begin{definition}[2/3-rule dealiasing]
+After every evaluation of a non-linear product (e.g.
+$u \cdot \partial_x \omega$) in physical space and subsequent
+forward FFT, set
+\begin{equation}
+\label{eq:khnm4}
+\hat g(k_x, k_y) := 0
+\quad\text{whenever}\quad
+\lvert k_x \rvert > \frac{N_x}{3} \;\text{or}\; \lvert k_y \rvert > \frac{N_y}{3}.
+\tag{KH-NM-4}
+\end{equation}
+\end{definition}
+
+The surviving Fourier modes contain only the aliasing-free
+representation of the product. This is the standard 2/3-rule of
+Orszag~\cite{Orszag1971}.
+This corresponds to test case \texttt{TC-NUM-KH-005}.
+
+\section{Stability constraint: CFL (Eq.\ KH-NM-5)}
+
+\begin{proposition}[CFL stability for explicit RK4 + Fourier spectral]
+For the explicit RK4 time integrator
+\eqref{eq:khnm3a} on a periodic Fourier-spectral spatial
+discretisation \eqref{eq:khnm1}, the maximum stable timestep
+satisfies
+\begin{equation}
+\label{eq:khnm5}
+\Delta t \leq \min\!\left(\frac{\Delta x}{\lvert u \rvert_{\max}},\,
+                          \frac{\Delta y}{\lvert v \rvert_{\max}},\,
+                          \frac{(\Delta x)^2}{2\nu},\,
+                          \frac{(\Delta y)^2}{2\nu}\right).
+\tag{KH-NM-5}
+\end{equation}
+\end{proposition}
+
+The kh-sim default $\Delta t = 0.001$ is conservative for the
+default $\mathrm{Re} = 1000$ on a $128 \times 64$ grid. This
+corresponds to test case \texttt{TC-NUM-KH-006}. The ETDRK4 scheme
+\eqref{eq:khnm3b} relaxes the diffusive bound (last two min-arguments)
+by treating $L$ exactly; the advective bound remains.
+
+\section{Numerical-precision considerations}
+
+By IEEE 754-2019~\cite{IEEE754_2019}, the rounding bound for the
+inner-product operations in the RK4 stages at IEEE binary64 (double
+precision) is approximately $\varepsilon \approx 2.22 \times 10^{-16}$
+per operation. For an integration of $N_t$ steps on an $N_x \times N_y$
+grid with the non-linear advection involving $\mathcal{O}(N_x N_y)$
+operations per RHS evaluation, the cumulative round-off bound is
+\[
+\varepsilon_{\text{cum}}(N_t, N_x, N_y)
+\;\lesssim\;
+\mathcal{O}\bigl( N_t \cdot \sqrt{N_x N_y} \cdot \varepsilon \bigr)
+\quad\text{(benign-input statistical bound)},
+\]
+with the worst-case linear-in-$N$ bound rarely realised. For the
+kh-sim default reference run ($N_t = 100$, $N_x N_y = 8192$ at
+$64 \times 128$ default), this gives $\varepsilon_{\text{cum}} \sim
+10^{-12}$, an order of magnitude tighter than the $\pm 5\%$ diagnostic
+gate currently used (AUDIT-kh-sim §4 lists this as an open question
+for phase 5 gate derivation).
+
+\section{Test-case traceability}
+
+\begin{table}[h]
+\centering
+\caption{Mapping from KH-NM equations to TC-NUM-KH test cases.}
+\begin{tabular}{lll}
+\toprule
+\textbf{Spec} & \textbf{KH-NM section} & \textbf{Fortran test} \\
+\midrule
+TC-NUM-KH-001 & KH-NM-1 (2D FFT round-trip)            & \texttt{test\_num\_001\_fft\_roundtrip.f90} \\
+TC-NUM-KH-002 & KH-NM-2 (spectral Poisson)              & \texttt{test\_num\_002\_poisson.f90} \\
+TC-NUM-KH-003 & KH-NM-3b (ETDRK4 on linear scalar ODE) & \texttt{test\_num\_003\_etdrk4\_linear.f90} \\
+TC-NUM-KH-004 & KH-NM-3b (convergence order 4)          & \texttt{test\_num\_004\_convergence.f90} \\
+TC-NUM-KH-005 & KH-NM-4 (2/3-rule)                       & \texttt{test\_num\_005\_dealias.f90} \\
+TC-NUM-KH-006 & KH-NM-5 (CFL across Re)                  & \texttt{test\_num\_006\_cfl.f90} \\
+TC-NUM-KH-007 & KH-NM-3a + KH-NM-2 (energy conservation, inviscid) & \texttt{test\_num\_007\_energy.f90} \\
+TC-NUM-KH-008 & KH-NM-1..5 composed (reference run validation) & \texttt{test\_num\_008\_reference.f90} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\printbibliography
+
+\end{document}

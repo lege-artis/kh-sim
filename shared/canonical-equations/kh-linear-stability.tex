@@ -1,0 +1,179 @@
+% Canonical equation -- KH instability linear stability dispersion (KH-LS)
+% kh-sim canonical-equations / v0.1
+% Companion to kh-linear-stability.md
+% Bibliography: ../reference-bibliography/refs.bib
+% Licence: CC-BY-SA-4.0
+
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\addbibresource{../reference-bibliography/refs.bib}
+
+\geometry{margin=2.4cm}
+
+\title{Canonical equations:\\ Kelvin--Helmholtz linear stability dispersion}
+\author{kh-sim project}
+\date{v0.1 -- 2026-05-12}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+\maketitle
+
+This document states the linear-stability dispersion relation
+$\sigma(k_x)$ for the kh-sim canonical initial conditions
+(tanh shear profile of Eq.\ KH-GE-4). It is the analytical anchor for
+one of the property tests in the phase-7 cross-backend property suite:
+\emph{the simulated early-time growth rate of a small-amplitude
+perturbation at mode $k_x$ must match the analytic $\sigma(k_x)$
+within tolerance.}
+
+This is the most demanding property test in the suite -- it certifies
+that the implementation correctly solves the linearised Navier--Stokes
+equations, not just that it conserves a few invariants.
+
+\section{The Rayleigh stability equation (Eq.\ KH-LS-1)}
+
+\begin{definition}[Inviscid linear stability for a parallel shear flow]
+Consider the inviscid limit ($\mathrm{Re} \to \infty$) of the kh-sim
+governing equations (KH-GE-1 with $\nu = 0$). Linearise about a
+parallel base flow $U(y)$ and seek perturbation normal modes of the
+form
+\[
+\omega'(x, y, t) = \tilde\omega(y)\,e^{i k_x x + \sigma t},
+\qquad
+\psi'(x, y, t) = \tilde\psi(y)\,e^{i k_x x + \sigma t}.
+\]
+The resulting eigenvalue problem is the \emph{Rayleigh stability
+equation}~\cite{DrazinReid2004}:
+\begin{equation}
+\label{eq:khls1}
+(U - c)\left(\frac{d^2 \tilde\psi}{dy^2} - k_x^2\,\tilde\psi\right)
+- U''\,\tilde\psi = 0,
+\tag{KH-LS-1}
+\end{equation}
+where $c = -i\sigma / k_x$ is the complex phase speed (real part:
+propagation speed; imaginary part: growth rate divided by $k_x$).
+\end{definition}
+
+\section{tanh-profile dispersion (Eq.\ KH-LS-2)}
+
+\begin{proposition}[tanh-profile inviscid dispersion relation, Drazin \& Reid \S4.5]
+For the base flow
+\[
+U(y) = U_0\,\tanh\!\left(\frac{y - L_y/2}{\delta}\right),
+\]
+the Rayleigh equation \eqref{eq:khls1} admits a known analytic
+solution. The growth rate $\sigma(k_x)$ is real and positive
+(\emph{unstable}) for $k_x \delta < 1$, and purely imaginary
+(neutrally stable oscillation) for $k_x \delta > 1$. The
+fastest-growing mode satisfies
+\begin{equation}
+\label{eq:khls2}
+k_{x, \max}\,\delta \approx 0.4446,
+\qquad
+\sigma_{\max} \approx 0.19\,\frac{U_0}{\delta}.
+\tag{KH-LS-2}
+\end{equation}
+\end{proposition}
+
+The full $\sigma(k_x)$ curve over $0 < k_x \delta < 1$ is most
+conveniently obtained by direct numerical solution of \eqref{eq:khls1}
+(shooting method or boundary-value solver on a truncated $y$-domain).
+See Schmid \& Henningson~\cite{SchmidHenningson2001} \S 3 for tabulated
+benchmark values.
+
+\section{The kh-sim canonical mode (Eq.\ KH-LS-3)}
+
+The kh-sim canonical IC (Eq.\ KH-GE-4) excites perturbation mode
+$k = 2$ over domain length $L_x = 1.0$, giving physical wavenumber
+\[
+k_x = \frac{2\pi k}{L_x} = 4\pi \approx 12.566\;\text{rad/m}.
+\]
+With $\delta = 0.05\,L_y = 0.025\;\text{m}$ and $U_0 = 1\;\text{m/s}$,
+the non-dimensional combination is
+\[
+k_x\,\delta = 12.566 \cdot 0.025 \approx 0.314,
+\]
+comfortably below the marginal-stability cutoff $k_x \delta = 1$.
+The mode is in the unstable band. Reading the tanh-profile dispersion
+curve at $k_x \delta = 0.314$ gives
+\begin{equation}
+\label{eq:khls3}
+\sigma_{\text{expected}} \approx 0.18\,\frac{U_0}{\delta}
+\approx 7.2\;\text{s}^{-1}.
+\tag{KH-LS-3}
+\end{equation}
+(Provisional numerical value -- to be confirmed in phase 7 with an
+explicit numerical solve of the Rayleigh equation~\eqref{eq:khls1}
+for the kh-sim default parameters.)
+
+\section{Property test specification (phase 7)}
+
+\begin{definition}[Linear-growth-rate property test]
+Run kh-sim with the canonical IC of Eq.\ KH-GE-4 except with a
+reduced perturbation amplitude $A = 10^{-4}$ (instead of the canonical
+$A = 10^{-2}$), to ensure the perturbation remains in the linear
+regime during the test interval. Measure the kinetic energy
+\[
+E_k(t) = \tfrac{1}{2}\,\mathbb{E}\!\left[ u^2 + v^2 \right]
+\]
+at output times $t \in \{0, t_1, t_2, \ldots\}$ with $t_n A \ll 1$ so
+the simulation is still linear. The simulated growth rate is
+\[
+\sigma_{\text{simulated}} = \tfrac{1}{2}\,\frac{d\ln E_k(t)}{dt}\bigg|_{t \to 0^+}
+\]
+(the factor of $1/2$ converts from energy growth rate $\propto e^{2\sigma t}$
+back to amplitude growth $\propto e^{\sigma t}$).
+\end{definition}
+
+\begin{proposition}[Property-test gate]
+For kh-sim at the canonical IC parameters with $A$ reduced to
+$10^{-4}$, $\sigma_{\text{simulated}}$ shall match
+$\sigma_{\text{expected}}$ from \eqref{eq:khls3} within:
+\begin{itemize}
+\item $\lvert \Delta\sigma/\sigma \rvert < 5\%$ at canonical
+      resolution $(N_x, N_y) = (128, 64)$ with default $\Delta t = 10^{-3}$;
+\item $\lvert \Delta\sigma/\sigma \rvert < 1\%$ at well-resolved
+      settings $(N_x, N_y) = (256, 128)$ with $\Delta t \leq 5 \times 10^{-4}$.
+\end{itemize}
+\end{proposition}
+
+This is the canonical physics-correctness property test for kh-sim.
+It anchors not only numerical-method correctness (which the
+TC-NUM-KH-001..008 series in
+\texttt{kh-numerical-methods.tex} already covers) but also that the
+implementation correctly recovers a non-trivial \emph{physical}
+prediction from the equations.
+
+\section{Outside scope of this document}
+
+The following are deliberately excluded from this canonical statement
+and treated in companion or future material:
+\begin{itemize}
+\item Viscous corrections to $\sigma(k_x)$ for finite~$\mathrm{Re}$.
+      For $\mathrm{Re} = 1000$ (kh-sim default), the correction is
+      small but non-zero. Covered in
+      Drazin \& Reid~\cite{DrazinReid2004} \S 4.6 and Schmid \&
+      Henningson~\cite{SchmidHenningson2001} \S 3.4.
+\item Non-linear billow roll-up dynamics. The linear theory captures
+      only the initial exponential growth; the visible
+      ``rolling vortex structure'' of the Kelvin--Helmholtz
+      instability is a non-linear saturation phenomenon (vortex sheet
+      roll-up, vortex pairing).
+\item Density-stratified Kelvin--Helmholtz (Chandrasekhar
+      \cite{Chandrasekhar1981}; Schmid \& Henningson \S 3.5).
+      kh-sim assumes uniform density.
+\end{itemize}
+
+\printbibliography
+
+\end{document}

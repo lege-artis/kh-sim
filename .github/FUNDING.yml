@@ -1,0 +1,8 @@
+# .github/FUNDING.yml -- voluntary funding handles for lege-artis/kh-sim.
+# Uncomment a line to display a "Sponsor" button on the repo page.
+# YAML keys must match GitHub's recognised platforms.
+# Ref: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+# github: <github-sponsors-username>
+patreon: PetrYamyang
+custom: ['https://paypal.me/petryamyang']

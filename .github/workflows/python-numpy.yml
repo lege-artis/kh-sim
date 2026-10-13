@@ -1,0 +1,62 @@
+name: Python/NumPy reference build + test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'shared/**'
+      - 'tests/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'pyproject.toml'
+      - '.github/workflows/python-numpy.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'shared/**'
+      - 'tests/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'pyproject.toml'
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    name: Python reference oracle + golden-vector tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'   # pyproject: requires-python >= 3.13
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+
+      - name: Run reference oracle smoke test
+        run: |
+          cd shared/physics
+          python kh_physics.py
+
+      # The HTTP suites skip without running backends; what runs here is the oracle
+      # (golden vectors, physics and canonical testbeds in process), the contract
+      # files and the documentation tiers (tests/docs runs the chapters' code).
+      - name: Run pytest suite
+        run: pytest -q -rs
+
+      - name: Build status summary
+        if: always()
+        run: |
+          echo "======================================================="
+          echo "Python/NumPy reference oracle status"
+          echo "  Runtime: $(python --version)"
+          echo "  NumPy:   $(python -c 'import numpy; print(numpy.__version__)')"
+          echo "  Role: canonical oracle -- all backends validated against this"
+          echo "  Wave-1 anchor: kinetic_energy=0.112810, enstrophy=43.705142"
+          echo "======================================================="

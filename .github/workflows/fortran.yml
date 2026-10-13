@@ -1,0 +1,53 @@
+name: Fortran reference build + test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backends/fortran/**'
+      - '.github/workflows/fortran.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backends/fortran/**'
+  workflow_dispatch:
+
+jobs:
+  build-test:
+    name: Fortran canonical reference build + tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install gfortran and cmake
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran cmake build-essential
+          gfortran --version
+          cmake --version
+
+      - name: Configure
+        working-directory: backends/fortran
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        working-directory: backends/fortran
+        run: cmake --build build --parallel
+
+      - name: Run tests
+        working-directory: backends/fortran
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Build status summary
+        if: always()
+        run: |
+          echo "======================================================="
+          echo "Fortran canonical reference backend status"
+          echo "  Compiler: $(gfortran --version | head -1)"
+          echo "  CMake:    $(cmake --version | head -1)"
+          echo "  FFT:      hand-rolled (canonical reference per doctrine sec 3.2)"
+          echo "  C1/C2/C3/C4 all apply -- strict textbook-verbatim discipline"
+          echo "  Wave-1 anchor: golden-vector matrix at machine precision"
+          echo "======================================================="

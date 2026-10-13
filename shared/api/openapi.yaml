@@ -1,0 +1,369 @@
+openapi: "3.1.0"
+
+info:
+  title: KH-SIM Backend API
+  description: |
+    Unified REST API contract for all Kelvin-Helmholtz instability simulation backends,
+    implemented independently in Rust (axum), Scala (http4s), C++ (cpp-httplib),
+    Fortran (cpp-httplib over a C-interop shim) and Pascal (fphttpserver); the Python
+    oracle shared/physics/kh_physics.py computes the same request in process.
+    All backends expose identical endpoint signatures on different ports.
+
+    This document describes what the backends implement, and
+    tests/integration/test_openapi_contract.py holds every backend to it: each
+    response is validated against the schemas below, the request properties equal the
+    oracle's SimulationRequest fields and the key list each backend knows (KH-VAL-2 K7),
+    and a request that omits a key gets the default declared here.
+
+    Request contract: KH-VAL-1 (_audit/FINDING-PASCAL-HTTP-PARAMETER-DROP-2026-09-16.md
+    v0.5) and KH-VAL-2 (_audit/KH-SIM-MODELLING-RULES-v0.1.md, ruling 2026-10-07).
+  version: "2.1.0"
+
+servers:
+  - url: http://localhost:8001
+    description: Rust backend (axum)
+  - url: http://localhost:8002
+    description: Scala backend (http4s)
+  - url: http://localhost:8003
+    description: C++ backend (cpp-httplib)
+  - url: http://localhost:8004
+    description: Fortran backend (cpp-httplib, C-interop)
+  - url: http://localhost:8005
+    description: Pascal backend (fphttpserver)
+
+paths:
+  /simulate:
+    post:
+      summary: Run a Kelvin-Helmholtz simulation and return the final state
+      operationId: simulate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SimulationRequest"
+      responses:
+        "200":
+          description: Simulation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimulationResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /health:
+    get:
+      summary: Backend health check
+      operationId: health
+      responses:
+        "200":
+          description: Backend is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /info:
+    get:
+      summary: Backend metadata (language, framework, FFT, grid constraint, build date)
+      operationId: info
+      responses:
+        "200":
+          description: Backend info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackendInfo"
+
+components:
+  schemas:
+
+    SimulationRequest:
+      type: object
+      description: |
+        Every key is optional; a missing key takes the default below. Validated before
+        the solver runs; a refused request is 400 {"error", "field"}.
+        KH-VAL-1: the body must be a JSON object; a key with the wrong JSON type is
+        refused; grid_nx, grid_ny in [1, 65536], a power of two on the radix-2 backends
+        (C++, Fortran, Pascal: see /info grid_constraint), grid_nx*grid_ny <= 4194304;
+        domain_lx, domain_ly, reynolds_number non-zero; initial_omega has exactly
+        grid_nx*grid_ny entries; forcing_type in {none, mode, band}, band needs
+        domain_lx == domain_ly.
+        KH-VAL-2: K3 refuses domain_lx, domain_ly, reynolds_number, dt, steps,
+        linear_drag or perturbation_mode below zero, and band forcing with
+        forcing_kmin > forcing_kmax; K4 refuses perturbation_mode 0, or beyond the
+        2/3-rule band (3*mode > 2*(grid_nx/2)), when perturbation_amplitude != 0 and no
+        initial_omega is sent; K4b (ruling 2026-10-09) refuses a non-zero
+        perturbation_amplitude sent together with initial_omega, which replaces the
+        analytic field and would silently ignore it. Viscosity is
+        nu = |velocity_shear| / reynolds_number;
+        velocity_shear = 0 is an inviscid run. Unknown keys are logged by the backend
+        (K7) and will be refused in a later version.
+        Forcing (2.1.0, 2026-10-10): every backend computes forcing_type mode and band
+        (the Fortran server refused them until ruling 8). With forcing_amplitude != 0,
+        K4 refuses a mode forcing_kx / forcing_ky beyond the 2/3-rule band
+        (3*|k| > 2*(grid/2)) and a band reaching beyond it
+        (3*floor(forcing_kmax) > 2*(min(grid_nx, grid_ny)/2)); K3 refuses a band that
+        holds no integer mode kmin <= |k| <= kmax. The Fortran server holds at most
+        4096 band modes (see /info "forcing").
+        Continuation: t_start is the time of the initial field. Time-dependent forcing
+        runs from it and t_final = t_start + steps*dt, so a run continued with
+        initial_omega = vorticity and t_start = t_final equals the unsplit run.
+        K8 (closed 2026-10-10, no limit below the cell cap): measured peak memory of one
+        request at 4194304 cells, 1 step - Rust 1.0 GiB, C++ 1.3 GiB, Fortran 1.5 GiB,
+        Pascal 2.4 GiB, Scala 6.6-7.3 GiB (JVM heap 16 GiB); all five answer 200.
+      properties:
+        grid_nx:
+          type: integer
+          description: Grid points in x
+          minimum: 1
+          maximum: 65536
+          default: 128
+        grid_ny:
+          type: integer
+          description: Grid points in y
+          minimum: 1
+          maximum: 65536
+          default: 64
+        domain_lx:
+          type: number
+          description: Domain length in x (non-dimensional)
+          exclusiveMinimum: 0
+          default: 1.0
+        domain_ly:
+          type: number
+          description: Domain length in y (non-dimensional)
+          exclusiveMinimum: 0
+          default: 0.5
+        dt:
+          type: number
+          description: Time step; 0 returns the initial field
+          minimum: 0
+          default: 0.001
+        steps:
+          type: integer
+          description: Number of time steps
+          minimum: 0
+          default: 100
+        reynolds_number:
+          type: number
+          description: Reynolds number; nu = |velocity_shear| / reynolds_number
+          exclusiveMinimum: 0
+          default: 1000.0
+        velocity_shear:
+          type: number
+          description: Shear velocity U; any sign (negative = the mirrored flow), 0 = inviscid
+          default: 1.0
+        perturbation_amplitude:
+          type: number
+          description: |
+            Amplitude of the sinusoidal perturbation of the analytic initial field. Has no
+            effect with initial_omega: a non-zero value sent together with it is a 400
+            (K4b); the default does not count as sent.
+          default: 0.01
+        perturbation_mode:
+          type: integer
+          description: Perturbation wavenumber; >= 1 and inside the 2/3-rule band when perturbation_amplitude != 0
+          minimum: 0
+          default: 2
+        initial_omega:
+          type: array
+          items:
+            type: number
+          description: |
+            Initial vorticity, grid_nx*grid_ny values, row-major (field[ix*ny + iy]).
+            Replaces the analytic initial field; absent = tanh shear layer plus the
+            perturbation.
+        init_omega:
+          type: array
+          items:
+            type: number
+          deprecated: true
+          description: Legacy name of initial_omega; sending both is a 400
+        forcing_type:
+          type: string
+          enum: [none, mode, band]
+          default: none
+        forcing_amplitude:
+          type: number
+          default: 0.0
+        forcing_kx:
+          type: integer
+          description: "mode: integer mode index along x; inside the 2/3-rule band when forcing_amplitude != 0"
+          default: 1
+        forcing_ky:
+          type: integer
+          description: "mode: integer mode index along y; inside the 2/3-rule band when forcing_amplitude != 0"
+          default: 1
+        forcing_kmin:
+          type: number
+          description: "band: inner integer-mode radius"
+          default: 0.0
+        forcing_kmax:
+          type: number
+          description: "band: outer integer-mode radius; the band must hold an integer mode and lie inside the 2/3-rule band"
+          default: 0.0
+        forcing_omega0:
+          type: number
+          description: "band: phase-rotation rate scale"
+          default: 0.0
+        linear_drag:
+          type: number
+          description: Ekman-type linear drag alpha
+          minimum: 0
+          default: 0.0
+        t_start:
+          type: number
+          description: |
+            Time of the initial field. Time-dependent forcing (a rotating band) is
+            evaluated from t_start, and t_final = t_start + steps*dt.
+          default: 0.0
+
+    SimulationResult:
+      type: object
+      required: [backend, language, steps_completed, t_final, grid_nx, grid_ny,
+                 u_velocity, v_velocity, vorticity, pressure, diagnostics,
+                 compute_time_ms, warnings]
+      additionalProperties: false
+      properties:
+        backend:
+          type: string
+          description: Backend identifier
+          examples: ["rust-axum"]
+        language:
+          type: string
+          examples: ["Rust"]
+        steps_completed:
+          type: integer
+          minimum: 0
+        t_final:
+          type: number
+          description: t_start + steps_completed*dt
+        grid_nx:
+          type: integer
+        grid_ny:
+          type: integer
+        u_velocity:
+          $ref: "#/components/schemas/Field"
+        v_velocity:
+          $ref: "#/components/schemas/Field"
+        vorticity:
+          $ref: "#/components/schemas/Field"
+        pressure:
+          $ref: "#/components/schemas/Field"
+        diagnostics:
+          $ref: "#/components/schemas/Diagnostics"
+        compute_time_ms:
+          type: number
+          minimum: 0
+        warnings:
+          type: array
+          items:
+            type: string
+          description: |
+            KH-VAL-2 K5: computed, but possibly not resolved. Each entry starts with one of
+            "cfl_advective:" (peak Courant number > 1), "cfl_diffusive:"
+            (2*nu*dt/min(dx,dy)^2 > 1), "inviscid:" (nu = 0). Empty when none applies.
+
+    Field:
+      type: array
+      items:
+        type: number
+      description: A 2D field at t_final, grid_nx*grid_ny values, row-major (field[ix*ny + iy])
+
+    Diagnostics:
+      type: object
+      required: [kinetic_energy, enstrophy, max_vorticity, divergence_rms, cfl_peak]
+      additionalProperties: false
+      properties:
+        kinetic_energy:
+          type: number
+          description: Total kinetic energy at t_final
+        enstrophy:
+          type: number
+          description: Total enstrophy at t_final
+        max_vorticity:
+          type: number
+        divergence_rms:
+          type: number
+          description: RMS velocity divergence (~0 for incompressible flow)
+        cfl_peak:
+          type: number
+          description: Peak Courant number over the run, dt*(max|u|/dx + max|v|/dy)
+
+    HealthResponse:
+      type: object
+      required: [status, backend, port]
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        backend:
+          type: string
+        port:
+          type: integer
+
+    BackendInfo:
+      type: object
+      required: [backend, language, framework, fft_library, grid_constraint, build_date,
+                 port, openapi_spec]
+      description: Backends may add fields (language_version, compiler, forcing).
+      properties:
+        backend:
+          type: string
+          examples: ["rust-axum"]
+        language:
+          type: string
+          examples: ["Rust"]
+        language_version:
+          type: string
+        compiler:
+          type: string
+        framework:
+          type: string
+          examples: ["axum 0.7"]
+        fft_library:
+          type: string
+        grid_constraint:
+          type: string
+          description: '"any", or the constraint of a radix-2 FFT ("power-of-two")'
+        build_date:
+          type: string
+          description: The image's build date, YYYY-MM-DD (deploy provenance)
+          pattern: '^\d{4}-\d{2}-\d{2}'
+        port:
+          type: integer
+        openapi_spec:
+          type: string
+          description: Repository path of this document
+        forcing:
+          type: string
+          description: Present when the backend does not compute forcing over HTTP
+  responses:
+    BadRequest:
+      description: The request was refused (KH-VAL-1 / KH-VAL-2); field names the offending key, or "body"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error, field]
+            additionalProperties: false
+            properties:
+              error: { type: string }
+              field: { type: string }
+
+    InternalError:
+      description: The computation failed or produced a non-finite value
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error, backend]
+            additionalProperties: false
+            properties:
+              error: { type: string }
+              backend: { type: string }
