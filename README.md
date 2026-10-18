@@ -11,8 +11,8 @@ and against textbook physics.
 
 ## Status
 
-`v0.1.0` — first public release; see [`RELEASE-NOTES-v0.1.0.md`](RELEASE-NOTES-v0.1.0.md)
-for what is validated and how.
+`v0.1.1` — CI fix on the first public release; see [`RELEASE-NOTES-v0.1.0.md`](RELEASE-NOTES-v0.1.0.md)
+for what is validated and how, and [`RELEASE-NOTES-v0.1.1.md`](RELEASE-NOTES-v0.1.1.md) for the fix.
 
 ---
 

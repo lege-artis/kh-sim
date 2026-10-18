@@ -23,7 +23,7 @@ on:
 jobs:
   build-test:
     name: Python reference oracle + golden-vector tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: ubuntu-latest moves to Ubuntu 26 from 2026-10-19
 
     steps:
       - name: Checkout

@@ -15,7 +15,7 @@ on:
 jobs:
   build-test:
     name: Scala/http4s + JTransforms build + tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: ubuntu-latest moves to Ubuntu 26 from 2026-10-19
 
     steps:
       - name: Checkout
@@ -26,6 +26,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      # sbt is not preinstalled on the Ubuntu 24.04 runner image (v0.1.0 CI: exit 127)
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
 
       - name: Cache sbt
         uses: actions/cache@v4
