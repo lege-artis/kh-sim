@@ -137,6 +137,10 @@ contains
   ! kx_max = π/dx = (nx/2) * 2π/(nx*dx)
   ! ky_max = π/dy = (ny/2) * 2π/(ny*dy)
   !
+  ! Reference: Orszag (1971), J. Atmos. Sci. 28(6), p.1074 (2/3 rule for
+  !            quadratic nonlinearities).
+  ! Complexity: O(N) -- one pass over the wavenumber grid.
+  !
   ! Arguments:
   !   nx, ny      [in]  grid resolution
   !   kx, ky      [in]  wavenumber arrays (from kh_grid_wavenums)

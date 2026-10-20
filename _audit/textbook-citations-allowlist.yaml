@@ -1,0 +1,307 @@
+# textbook-citations-allowlist.yaml - kh-sim
+#
+# LEGE-ARTIS language doctrine s4.4 C3: the routines of the hand-rolled reference
+# backends that implement a textbook method carry a comment block naming the
+# reference (author, year, section, equation), the sign or convention, and the
+# complexity. This file is the authoritative list; scripts/audit_citations.py
+# (wrapper scripts/audit-citations.sh; CI: .github/workflows/citations-c3.yml)
+# checks the sources against it and fails on any mismatch.
+#
+# Sections
+#   routines:  cited routines. hand-rolled entries are audited: the comment block
+#              directly above the definition must contain the first author's
+#              surname and the year of every citation, the section (S12.2, sec. 12.2
+#              or with the section sign), the equation and page when given, the
+#              sign_convention text when given, and the complexity_claim.
+#              library-backed entries (Rust rustfft, Scala JTransforms) are exempt
+#              from C1-C4 and only listed.
+#   pending:   public routines whose textbook anchor is still to be chosen. Reported,
+#              not failing; `audit_citations.py --strict` fails on them.
+#   exempt:    public routines that implement no textbook method, with the reason.
+# Every public routine of the Fortran and Pascal sources (Fortran `public ::`
+# lists, Pascal unit interface sections) must appear in one of the three; a new
+# public routine without an entry fails the audit.
+#
+# complexity_audit_test: the doctrine C4 test of the complexity claim, where one exists.
+# License: Apache-2.0 (with the sources it governs).
+
+schema_version: 0.2.0
+project: kh-sim
+
+routines:
+  # -- FFT (iterative radix-2 decimation-in-time Cooley-Tukey) ----------------------
+  - file: backends/fortran/src/kh_fft.f90
+    symbol: fft1d_inplace
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: Press2007
+        section: "§12.2"
+        equation: "12.2.2"
+        page: ~
+        note: "decimation-in-time butterfly recurrence"
+    sign_convention: "exp(-2*pi*i*k*n/N)"
+    complexity_claim: "O(N log N)"
+    complexity_audit_test: backends/fortran/tests/test_complexity_c4.f90   # 1D through kh_fft_forward_2d/inverse_2d, nx = 1
+    fix_commit: 8a92f8e          # phase-6c sign convention fix
+
+  - file: backends/pascal/src/kh_physics.pas
+    symbol: FFT1D
+    language: pascal
+    status: hand-rolled
+    citations:
+      - reference_key: Press1986Pascal
+        section: "§12.2"
+        equation: "12.2.2"
+        page: 394
+        note: "decimation-in-time butterfly recurrence; routine FOUR1"
+    sign_convention: "exp(-2*pi*i*k*n/N)"
+    complexity_claim: "O(N log N)"
+    complexity_audit_test: backends/pascal/tests/test_complexity_c4.pas
+    fix_commits: ["e77379b", "c046618"]  # phase-6c sign + REST field-name fixes
+
+  - file: backends/cpp/src/physics.cpp
+    symbol: fft1d
+    language: cpp
+    status: hand-rolled
+    citations:
+      - reference_key: Press2007
+        section: "§12.2"
+        equation: "12.2.2"
+        page: ~
+        note: "decimation-in-time butterfly recurrence"
+    sign_convention: "exp(-2*pi*i*k*n/N)"
+    complexity_claim: "O(N log N)"
+    complexity_audit_test: ~     # not wired: fft1d is file-static in physics.cpp
+    fix_commit: 118c345          # phase-6c sign convention fix
+
+  # -- Time step: classical fourth-order Runge-Kutta --------------------------------
+  - file: backends/fortran/src/kh_physics.f90
+    symbol: rk4_step
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: Press2007
+        section: "§17.1"
+        equation: "17.1.3"
+        page: ~
+        note: "classical fourth-order Runge-Kutta"
+    sign_convention: "weights 1/6, 1/3, 1/3, 1/6"
+    complexity_claim: "O(N log N) per step"
+    complexity_audit_test: ~
+
+  - file: backends/pascal/src/kh_physics.pas
+    symbol: RK4Step
+    language: pascal
+    status: hand-rolled
+    citations:
+      - reference_key: Press1986Pascal
+        section: "§15.1"
+        equation: "15.1.3"
+        page: ~
+        note: "classical fourth-order Runge-Kutta; routine RK4"
+    sign_convention: "weights 1/6, 1/3, 1/3, 1/6"
+    complexity_claim: "O(N log N) per step"
+    complexity_audit_test: ~
+
+  # -- De-aliasing: Orszag 2/3 rule ----------------------------------------------------
+  - file: backends/fortran/src/kh_grid.f90
+    symbol: kh_grid_dealias_mask
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: Orszag1971
+        section: ~
+        equation: ~
+        page: 1074
+        note: "2/3 rule for quadratic nonlinearities"
+    sign_convention: "(2/3)"
+    complexity_claim: "O(N)"
+    complexity_audit_test: ~
+
+  - file: backends/pascal/src/kh_physics.pas
+    symbol: DealiasField
+    language: pascal
+    status: hand-rolled
+    citations:
+      - reference_key: Orszag1971
+        section: ~
+        equation: ~
+        page: 1074
+        note: "2/3 rule for quadratic nonlinearities"
+    sign_convention: "(2/3)"
+    complexity_claim: "O(N)"
+    complexity_audit_test: ~
+
+  # -- Library-backed FFTs (exempt from C1-C4, doctrine s3.5/s3.6) ---------------------
+  - file: backends/rust/src/physics/fft2d.rs
+    symbol: fft2
+    language: rust
+    status: library-backed
+    note: "rustfft 6; convention documented by the library"
+
+  - file: backends/scala/src/main/scala/khsim/physics/Fft2D.scala
+    symbol: fft2
+    language: scala
+    status: library-backed
+    note: "JTransforms 3.1 DoubleFFT_2D"
+
+pending:
+  - file: backends/fortran/src/kh_poisson.f90
+    symbols: [kh_poisson_solve]
+    reason: "spectral Poisson solve (division by -|k|^2); textbook anchor to be chosen"
+  - file: backends/fortran/src/kh_velocity.f90
+    symbols: [kh_velocity_from_psi]
+    reason: "spectral derivative (multiplication by i k); textbook anchor to be chosen"
+  - file: backends/fortran/src/kh_nonlinear.f90
+    symbols: [kh_nonlinear_rhs]
+    reason: "pseudo-spectral advection term (spectral derivatives, product in physical space); textbook anchor to be chosen"
+  - file: backends/fortran/src/kh_etdrk4.f90
+    symbols: [kh_etdrk4_precompute, kh_etdrk4_step]
+    reason: "ETDRK4 alternate scheme; module header cites Cox & Matthews (2002) and Kassam & Trefethen (2005) - per-routine header with verified equation numbers to be written"
+  - file: backends/pascal/src/kh_physics.pas
+    symbols: [SolvePoisson, VelFromPsi, VortRHS]
+    reason: "private Pascal counterparts of the spectral Poisson solve, spectral derivative and advection term; same anchor as the Fortran routines"
+
+exempt:
+  - file: backends/fortran/src/kh_fft.f90
+    symbols: [kh_fft_forward_2d, kh_fft_inverse_2d]
+    reason: "row-column composition of fft1d_inplace (cited)"
+  - file: backends/fortran/src/kh_physics.f90
+    symbols: [rk4_step_fd]
+    reason: "rk4_step (cited) with additive forcing and linear drag at the stages"
+  - file: backends/fortran/src/kh_physics.f90
+    symbols: [kh_simulate_c, kh_simulate_rk4]
+    reason: "drivers: set-up, time loop, output marshalling"
+  - file: backends/fortran/src/kh_forcing.f90
+    symbols: [rk4_step_forced]
+    reason: "rk4_step (cited) with band forcing and linear drag at the stages"
+  - file: backends/fortran/src/kh_forcing.f90
+    symbols: [build_mode_forcing, build_band_phi0, build_band_omegas, eval_band_forcing]
+    reason: "forcing fields of the project's forcing API (no textbook method)"
+  - file: backends/fortran/src/kh_nonlinear.f90
+    symbols: [kh_dealias]
+    reason: "applies the mask built by kh_grid_dealias_mask (cited)"
+  - file: backends/fortran/src/kh_grid.f90
+    symbols: [kh_grid_make, kh_grid_wavenums]
+    reason: "grid coordinates and wavenumber arrays (set-up)"
+  - file: backends/fortran/src/kh_initial_conditions.f90
+    symbols: [kh_ic_tanh_shear]
+    reason: "initial condition: tanh shear layer (physics input, not a numerical method)"
+  - file: backends/fortran/src/kh_diagnostics.f90
+    symbols: [kh_diagnostics_compute]
+    reason: "diagnostics: sums and norms over the grid"
+  - file: backends/fortran/src/kh_io.f90
+    symbols: [kh_io_read_params, kh_io_open_output, kh_io_write_snapshot, kh_io_close_output]
+    reason: "input/output"
+  - file: backends/fortran/src/kh_reference.f90
+    symbols: [kh_reference_compare]
+    reason: "test support: comparison against the reference output"
+  - file: backends/fortran/src/kh_solver.f90
+    symbols: [kh_solver_run]
+    reason: "driver of the ETDRK4 alternate scheme"
+  - file: backends/pascal/src/kh_physics.pas
+    symbols: [CmplxOf, CmplxFromReal, RealPart]
+    reason: "complex-number helpers"
+  - file: backends/pascal/src/kh_physics.pas
+    symbols: [CflDtBound]
+    reason: "time-step bound from the CFL and diffusion limits (formula, no approximation method)"
+  - file: backends/pascal/src/kh_physics.pas
+    symbols: [Simulate]
+    reason: "driver: set-up, time loop, output marshalling"
+  - file: backends/pascal/src/kh_forcing.pas
+    symbols: [BuildModeForcing, BuildBandPhi0, BuildBandOmegas, EvalBandForcing]
+    reason: "forcing fields of the project's forcing API (no textbook method)"
+
+references:
+  Press2007:
+    authors: ["Press, W. H.", "Teukolsky, S. A.", "Vetterling, W. T.", "Flannery, B. P."]
+    year: 2007
+    title: "Numerical Recipes: The Art of Scientific Computing"
+    edition: "3rd"
+    publisher: "Cambridge University Press"
+
+  Press1986Pascal:
+    authors: ["Press, W. H.", "Flannery, B. P.", "Teukolsky, S. A.", "Vetterling, W. T."]
+    year: 1986
+    title: "Numerical Recipes in Pascal: The Art of Scientific Computing"
+    publisher: "Cambridge University Press"
+
+  Hairer1993:
+    authors: ["Hairer, E.", "Nørsett, S. P.", "Wanner, G."]
+    year: 1993
+    title: "Solving Ordinary Differential Equations I: Nonstiff Problems"
+    edition: "2nd"
+    publisher: "Springer-Verlag"
+
+  Orszag1971:
+    authors: ["Orszag, S. A."]
+    year: 1971
+    title: "On the elimination of aliasing in finite-difference schemes by filtering high-wavenumber components"
+    journal: "J. Atmos. Sci."
+    volume: 28
+    number: 6
+    pages: "1074"
+
+  Boyd2001:
+    authors: ["Boyd, J. P."]
+    year: 2001
+    title: "Chebyshev and Fourier Spectral Methods"
+    edition: "2nd"
+    publisher: "Dover Publications"
+
+  # ── Phase 7f physics anchors (cited in test programs, not source routines, ──
+  # ── but reference entries useful for STATUS reports + cross-doc references) ──
+
+  DrazinReid1981:
+    authors: ["Drazin, P. G.", "Reid, W. H."]
+    year: 1981
+    title: "Hydrodynamic Stability"
+    publisher: "Cambridge University Press"
+
+  Michalke1964:
+    authors: ["Michalke, A."]
+    year: 1964
+    title: "On the inviscid instability of the hyperbolic-tangent velocity profile"
+    journal: "J. Fluid Mech."
+    volume: 19
+    number: 4
+    pages: "543-556"
+
+  Lesieur2008:
+    authors: ["Lesieur, M."]
+    year: 2008
+    title: "Turbulence in Fluids"
+    edition: "4th"
+    publisher: "Springer"
+
+  Kraichnan1967:
+    authors: ["Kraichnan, R. H."]
+    year: 1967
+    title: "Inertial ranges in two-dimensional turbulence"
+    journal: "Phys. Fluids"
+    volume: 10
+    number: 7
+    pages: "1417-1423"
+
+  Saffman1992:
+    authors: ["Saffman, P. G."]
+    year: 1992
+    title: "Vortex Dynamics"
+    publisher: "Cambridge University Press"
+
+  MZM1988:
+    authors: ["Melander, M. V.", "Zabusky, N. J.", "McWilliams, J. C."]
+    year: 1988
+    title: "Symmetric vortex merger in two dimensions: causes and conditions"
+    journal: "J. Fluid Mech."
+    volume: 195
+    pages: "303-340"
+
+  Brachet1983:
+    authors: ["Brachet, M. E.", "Meiron, D. I.", "Orszag, S. A.", "Nickel, B. G.", "Morf, R. H.", "Frisch, U."]
+    year: 1983
+    title: "Small-scale structure of the Taylor-Green vortex"
+    journal: "J. Fluid Mech."
+    volume: 130
+    pages: "411-452"

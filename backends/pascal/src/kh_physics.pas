@@ -140,7 +140,7 @@ end;
              inverse applies 1/N normalisation. Phase-6c sign-convention
              fix is commit e77379b (conjugate-of-standard bug corrected).
   Complexity: O(N log N) -- log2(N) stages of N/2 butterflies, per S12.2;
-             verified empirically by the phase-7d/7f timings.
+             checked empirically by tests/test_complexity_c4.pas (doctrine C4).
   Doctrine 4.4 C3 citation header (Pascal canonical-reference backend). }
 { n must be a power of 2. inverse=True applies 1/n normalisation.             }
 procedure FFT1D(var a: TComplexArr; n: Integer; inverse: Boolean);
@@ -364,6 +364,12 @@ begin
   end;
 end;
 
+{ -- 2/3-rule de-aliasing (KH-NM-4) ---------------------------------------- }
+{ Zeroes, in place, every mode with |kx| > (2/3) kx_max or |ky| > (2/3) ky_max.
+  Reference: Orszag (1971), J. Atmos. Sci. 28(6), p.1074 (2/3 rule for
+             quadratic nonlinearities).
+  Convention: per-axis cut-off at (2/3) of the largest resolved wavenumber.
+  Complexity: O(N) -- two passes over the spectral array. }
 procedure DealiasField(var field_hat: TComplexArr; const kx, ky: TRealArr; nx, ny: Integer);
 var k, n: Integer;
     kx_max, ky_max, kx_cut, ky_cut: Double;
@@ -501,7 +507,14 @@ end;
 { RK4 step with optional time-dependent forcing + linear drag (phase 7f).
   Forcing evaluated at RK4 stage times: k1@t, k2/k3@t+dt/2, k4@t+dt. When
   fc.active=False and drag=0 the four VortRHS calls take the pre-7f path
-  (use_force=False) => bit-identical to the pre-7f kernel.                    }
+  (use_force=False) => bit-identical to the pre-7f kernel.
+  Reference: Press, Flannery, Teukolsky & Vetterling (1986), Numerical Recipes
+             in Pascal, S15.1, eq. 15.1.3 (classical fourth-order Runge-Kutta;
+             routine RK4).
+  Convention: explicit; stages at t, t+dt/2, t+dt/2, t+dt; weights 1/6, 1/3,
+             1/3, 1/6.
+  Complexity: O(N log N) per step -- four right-hand-side evaluations, each
+             bound by the 2D FFTs of the pseudo-spectral derivatives.         }
 procedure RK4Step(const omega, kx, ky: TRealArr;
   nx, ny: Integer; nu, dt, t, drag: Double; const fc: TForcing;
   out omega_out: TRealArr);

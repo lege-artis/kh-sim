@@ -1,0 +1,41 @@
+name: C3 citation audit
+
+# LEGE-ARTIS language doctrine s4.4 C3: the routines of the hand-rolled reference
+# backends that implement a textbook method carry a citation header (reference,
+# section, equation, convention, complexity), checked against
+# _audit/textbook-citations-allowlist.yaml. A missing or mismatched header, a stale
+# allowlist entry, or a new public Fortran/Pascal routine without an entry fails.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backends/**'
+      - '_audit/textbook-citations-allowlist.yaml'
+      - 'scripts/audit_citations.py'
+      - 'scripts/audit-citations.sh'
+      - '.github/workflows/citations-c3.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backends/**'
+      - '_audit/textbook-citations-allowlist.yaml'
+      - 'scripts/audit_citations.py'
+      - 'scripts/audit-citations.sh'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    name: Citation headers against the allowlist
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install PyYAML
+        run: python -m pip install pyyaml
+      - name: C3 audit
+        run: sh scripts/audit-citations.sh
+      - name: Self-test (each defect must fail the audit)
+        run: sh scripts/audit-citations.sh --self-test

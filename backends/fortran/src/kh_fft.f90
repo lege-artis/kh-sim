@@ -49,6 +49,13 @@ contains
   !   a(0:n-1)  [inout]  complex array, n must be a power of 2
   !   n         [in]     array length
   !   inverse   [in]     .false. = forward DFT; .true. = inverse (normalised)
+  !
+  ! Reference: Press, Teukolsky, Vetterling & Flannery (2007), Numerical Recipes,
+  !            3rd ed., S12.2, eq. 12.2.2 (decimation-in-time butterfly recurrence).
+  ! Sign convention: forward = exp(-2*pi*i*k*n/N), per S12.1 (standard); the
+  !            inverse applies 1/n normalisation. Phase-6c sign fix: commit 8a92f8e.
+  ! Complexity: O(N log N) -- log2(N) stages of N/2 butterflies; checked
+  !            empirically by tests/test_complexity_c4.f90 (doctrine C4).
 
   subroutine fft1d_inplace(a, n, inverse)
     integer,    intent(in)    :: n

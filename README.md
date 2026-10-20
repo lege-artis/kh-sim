@@ -11,8 +11,9 @@ and against textbook physics.
 
 ## Status
 
-`v0.1.1` — CI fix on the first public release; see [`RELEASE-NOTES-v0.1.0.md`](RELEASE-NOTES-v0.1.0.md)
-for what is validated and how, and [`RELEASE-NOTES-v0.1.1.md`](RELEASE-NOTES-v0.1.1.md) for the fix.
+`v0.1.2` — doctrine audits: textbook citations (C3) and complexity (C4) of the hand-rolled
+backends, checked in CI; see [`RELEASE-NOTES-v0.1.2.md`](RELEASE-NOTES-v0.1.2.md). What is validated
+and how: [`RELEASE-NOTES-v0.1.0.md`](RELEASE-NOTES-v0.1.0.md).
 
 ---
 

@@ -1,0 +1,49 @@
+name: C4 complexity audit (nightly)
+
+# LEGE-ARTIS language doctrine v0.1 s4.4 C4: the O(N log N) claim of the hand-rolled
+# FFTs is checked empirically - least-squares slope of ln t over ln(N log2 N),
+# N = 2^6..2^16, median of 5 runs per size, PASS within [0.9, 1.1]. Release build,
+# no LTO. Nightly, not per commit (run time depends on the runner; one failed night
+# on a noisy runner is re-run before it is read as a regression).
+# Library-backed FFTs (Rust rustfft, Scala JTransforms) are exempt.
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  pascal:
+    name: Pascal FFT1D (kh_physics.pas)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backends/pascal
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Free Pascal
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends fpc
+      - name: Build (release, -O2)
+        run: |
+          mkdir -p build/c4
+          fpc -O2 -Fusrc -FUbuild/c4 -FEbuild/c4 tests/test_complexity_c4.pas
+      - name: C4 audit
+        run: ./build/c4/test_complexity_c4
+
+  fortran:
+    name: Fortran fft1d_inplace (kh_fft.f90)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backends/fortran
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install gfortran
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gfortran
+      - name: Build (release, -O2)
+        run: |
+          mkdir -p build/c4
+          gfortran -O2 -Jbuild/c4 -o build/c4/test_complexity_c4 \
+              src/kh_constants.f90 src/kh_fft.f90 tests/test_complexity_c4.f90
+      - name: C4 audit
+        run: ./build/c4/test_complexity_c4

@@ -131,6 +131,12 @@ contains
 
 
   ! ── RK4 step ──────────────────────────────────────────────────────────────────
+  ! Classical fourth-order Runge-Kutta step for d(omega)/dt = rhs(omega).
+  ! Reference: Press, Teukolsky, Vetterling & Flannery (2007), Numerical Recipes,
+  !            3rd ed., S17.1, eq. 17.1.3 (classical fourth-order Runge-Kutta).
+  ! Convention: explicit; stages at t, t+dt/2, t+dt/2, t+dt; weights 1/6, 1/3, 1/3, 1/6.
+  ! Complexity: O(N log N) per step -- four right-hand-side evaluations, each
+  !            bound by the 2D FFTs of the pseudo-spectral derivatives.
   subroutine rk4_step(omega, nu, kx, ky, mask, nx, ny, dt, omega_out)
     integer,        intent(in)  :: nx, ny
     real(c_double), intent(in)  :: omega(0:nx-1, 0:ny-1)

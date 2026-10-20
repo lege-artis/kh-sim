@@ -38,6 +38,7 @@ static constexpr double PI = std::numbers::pi;
 // C3 citation: Press et al. (2007) Numerical Recipes 3rd ed., sec. 12.2,
 //   eq. 12.2.2. Forward sign convention: exp(-2*pi*i*k*n/N) (standard DFT).
 //   Phase-6c sign fix (commit 118c345): forward uses ang=-2pi/len (minus sign).
+// Complexity: O(N log N) -- log2(N) stages of N/2 butterflies.
 
 static void fft1d(vc& a, bool inverse) {
     const int n = static_cast<int>(a.size());
