@@ -6,7 +6,7 @@ backends through the request API.
 Specification: MASTER-BRIEF.md s3.1, amendment E9 (2026-10-11), under ruling 2
 (2026-10-07: the per-language CP-7F suites give way to one shared harness, as C did with
 E6 and B, D with E7). The oracle's method of 2026-09-15
-(_audit/phase-7f-cp7fa-extrapolation-assessment-2026-09-15.md), in the box and with the
+(development record, CP-7F-A assessment 2026-09-15), in the box and with the
 seed chosen by the three-box study of 2026-10-11 (assessment s7, s8):
 
   Box Lx = pi^2, Ly = 2 pi, 256^2, dt = 0.001, velocity_shear 1, delta = Ly/40, so

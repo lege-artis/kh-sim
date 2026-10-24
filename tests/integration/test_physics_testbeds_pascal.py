@@ -21,7 +21,7 @@ Testbed catalogue (13 tests):
 Validation environment (sandbox approval 2026-06-11):
   FPC 3.2.2, Linux x86_64 (Ubuntu 22.04, sandbox)
   Project-owner approved sandbox green as counting for phase-7d closure.
-  ThinkPad re-run recommended before wave-5 public publish.
+  Native re-run recommended before wave-5 public publish.
 
 Run (requires server on :8005):
     ./build/kh_server &

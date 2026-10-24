@@ -1,6 +1,6 @@
 ! test_num_008_reference.f90 — TC-NUM-KH-008: canonical reference run validation
 !
-! TC-NUM-KH-008 specification (PHYSICS-NUMERICAL-METHODS-v0.1.md §2.3):
+! TC-NUM-KH-008 specification (NM development spec §2.3):
 !   Test target:  Canonical reference run output
 !   Method check: Run kh_solver_run with the canonical parameters defined in
 !                 kh_reference.f90; compare final diagnostics against the
@@ -16,7 +16,7 @@
 ! and minor algorithmic variations while still certifying physical correctness.
 ! Byte-exact sha256 reproducibility is deferred to OQ-NUM-05.
 !
-! Expected outcome based on ThinkPad gfortran validation (2026-05-04):
+! Expected outcome based on the reference-workstation gfortran validation (2026-05-04):
 !   KE=1.1281e-1 vs ref 1.1281e-1 → rel err ≈ 0.003%  PASS
 !   Enstrophy=4.3703e+1 vs ref 4.3705e+1 → rel err ≈ 0.005%  PASS
 !   max|ω|=3.1986e+1 vs ref 3.1908e+1 → rel err ≈ 0.25%  PASS
@@ -24,7 +24,7 @@
 !
 ! Exit code: 0 = PASS, 1 = FAIL
 !
-! Compilation (DRY-RUN — validate on ThinkPad):
+! Compilation (DRY-RUN — validate natively):
 !   gfortran -O2 -o test_num_008 \
 !       src/kh_constants.f90 src/kh_fft.f90 src/kh_grid.f90 \
 !       src/kh_initial_conditions.f90 src/kh_nonlinear.f90 \

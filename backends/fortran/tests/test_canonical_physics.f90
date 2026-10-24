@@ -328,7 +328,7 @@ contains
   ! (MASTER-BRIEF s3.3, E6), which runs one specification against every backend.
   ! The two-maxima tracker that stood here never fired on a merged vortex, and its
   ! nu = a^2/Re made Re_Gamma ~ 1840 instead of 5000 (a 3.5a pair then merges);
-  ! see _audit/FINDING-CP7FC-MERGE-DETECTION-2026-10-06.md.
+  ! see development record, finding 2026-10-06.
   ! ===========================================================================
   subroutine cp7fc_moved()
     write(*,'(A)') 'CP-7F-C: SKIP -- moved to tests/integration/test_canonical_physics_cp7fc.py (MASTER s3.3 E6)'

@@ -1,6 +1,6 @@
 program test_solver_guards;
 { kh-sim Pascal backend - native locks for the 2026-09-26 solver changes.
-  Finding: kh-sim/_audit/FINDING-PASCAL-HTTP-PARAMETER-DROP-2026-09-16.md (v0.4)
+  Finding: development record, finding 2026-09-16 (v0.4)
 
   Calls kh_physics.Simulate directly, bypassing the HTTP validation in
   kh_server.pas, so it exercises the guards the HTTP tests cannot reach:

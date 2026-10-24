@@ -1,6 +1,6 @@
 # test_pascal_validation.py -- Pascal backend: exact request-validation contract
 # Task: KH-018 extension (2026-09-26)
-# Finding: kh-sim/_audit/FINDING-PASCAL-HTTP-PARAMETER-DROP-2026-09-16.md (v0.4, B-3/B-4)
+# Finding: development record, finding 2026-09-16 (v0.4, B-3/B-4)
 #
 # Pascal-specific, unlike test_conformance.py: these pin exactly what THIS backend
 # refuses and how, because its radix-2 FFT makes a non-power-of-two grid a request

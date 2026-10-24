@@ -5,7 +5,7 @@
 // its own src/, so the file exists twice and the two copies are byte-identical;
 // tests/integration/test_conformance.py locks the behaviour of both servers.
 //
-// Contract KH-VAL-1 (kh-sim/_audit/FINDING-PASCAL-HTTP-PARAMETER-DROP-2026-09-16.md
+// Contract KH-VAL-1 (development record, finding 2026-09-16
 // v0.5; first implemented in backends/pascal/src/kh_server.pas):
 //   - body must be a JSON object                          -> 400 field "body"
 //   - a key present with the wrong JSON type               -> 400 field <key>
@@ -19,7 +19,7 @@
 //   - a computation that fails or produces a non-finite
 //     number                                             -> 500 {error, backend}
 //
-// Contract KH-VAL-2 (kh-sim/_audit/KH-SIM-MODELLING-RULES-v0.1.md, ruling 2026-10-07)
+// Contract KH-VAL-2 (development record, modelling rules v0.1, ruling 2026-10-07)
 // adds, after the KH-VAL-1 checks:
 //   K3 outside the model (computable, but no physical state of it):
 //     domain_lx, domain_ly, reynolds_number < 0; dt < 0; steps < 0;

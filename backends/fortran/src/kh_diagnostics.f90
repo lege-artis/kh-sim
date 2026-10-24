@@ -25,7 +25,7 @@
 !
 ! References:
 !   KH-PHYSICS.md §6 (diagnostics definitions)
-!   PHYSICS-NUMERICAL-METHODS-v0.1.md §2.5
+!   NM development spec §2.5
 
 module kh_diagnostics
   use kh_constants, only: c_double

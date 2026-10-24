@@ -15,8 +15,8 @@ info:
     oracle's SimulationRequest fields and the key list each backend knows (KH-VAL-2 K7),
     and a request that omits a key gets the default declared here.
 
-    Request contract: KH-VAL-1 (_audit/FINDING-PASCAL-HTTP-PARAMETER-DROP-2026-09-16.md
-    v0.5) and KH-VAL-2 (_audit/KH-SIM-MODELLING-RULES-v0.1.md, ruling 2026-10-07).
+    Request contract: KH-VAL-1 (development record, finding 2026-09-16
+    v0.5) and KH-VAL-2 (development record, modelling rules v0.1, ruling 2026-10-07).
   version: "2.1.0"
 
 servers:

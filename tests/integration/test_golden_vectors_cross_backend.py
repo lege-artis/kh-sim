@@ -10,7 +10,7 @@ summaries using the Higham §4.2 hybrid tolerance rule.
 Requires running backend servers. Tests skip gracefully on connection refused.
 
 Two modes:
-  run-mode:   all 5 backends up — full cross-backend validation (ThinkPad)
+  run-mode:   all 5 backends up — full cross-backend validation (reference workstation)
   quick-mode: Python oracle self-check — loads JSONs + validates structure
 
 Usage:

@@ -39,7 +39,7 @@
 !   kh_io_close_output(unit)
 !
 ! References:
-!   PHYSICS-NUMERICAL-METHODS-v0.1.md §2.5 (I/O spec)
+!   NM development spec §2.5 (I/O spec)
 !   kh-sim/shared/physics/KH-PHYSICS.md §3 (default parameters)
 
 module kh_io

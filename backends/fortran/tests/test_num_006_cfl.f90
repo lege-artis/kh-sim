@@ -1,6 +1,6 @@
 ! test_num_006_cfl.f90 — TC-NUM-KH-006: solver stability across Reynolds numbers
 !
-! TC-NUM-KH-006 specification (PHYSICS-NUMERICAL-METHODS-v0.1.md §2.3):
+! TC-NUM-KH-006 specification (NM development spec §2.3):
 !   Test target:  Full solver stability with CFL monitoring
 !   Method check: Run kh_solver_run at Re=100, 1000, 10000; T=0.1; 64×32 grid.
 !                 Verify solution remains bounded and divergence-free.
@@ -22,7 +22,7 @@
 !
 ! Exit code: 0 = PASS (all 3 sub-tests), 1 = FAIL
 !
-! Compilation (DRY-RUN — validate on ThinkPad):
+! Compilation (DRY-RUN — validate natively):
 !   gfortran -O2 -o test_num_006 \
 !       src/kh_constants.f90 src/kh_fft.f90 src/kh_grid.f90 \
 !       src/kh_initial_conditions.f90 src/kh_nonlinear.f90 \

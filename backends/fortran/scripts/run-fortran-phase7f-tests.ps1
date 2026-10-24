@@ -1,5 +1,5 @@
 # run-fortran-phase7f-tests.ps1
-# Phase-7F canonical physics testbeds runner for ThinkPad (gfortran native).
+# Phase-7F canonical physics testbeds runner for the reference workstation (gfortran native).
 # Builds test_canonical_physics from source, then runs all test cases.
 #
 # Usage:

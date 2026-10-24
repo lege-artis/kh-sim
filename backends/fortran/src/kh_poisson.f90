@@ -18,7 +18,7 @@
 !   kh_poisson_solve(omega_hat, k2, nx, ny, psi_hat)
 !
 ! Reference: kh-sim/shared/physics/KH-PHYSICS.md §2, §4
-! Numerical methods: _config/PHYSICS-NUMERICAL-METHODS-v0.1.md §2.2
+! Numerical methods: shared/canonical-equations/kh-numerical-methods.md
 
 module kh_poisson
   use kh_constants, only: c_double
@@ -38,6 +38,11 @@ contains
   !   nx, ny                    [in]  grid dimensions
   !   psi_hat(0:nx-1, 0:ny-1)   [out] Fourier transform of streamfunction ψ
   !                                   psi_hat = omega_hat / k2; psi_hat(0,0) = 0
+  !
+  ! Reference: Trefethen (2000), Spectral Methods in MATLAB, ch. 3 (periodic
+  !            grids: spectral differentiation and the 2D Poisson solve via the FFT).
+  ! Convention: psi_hat = omega_hat / k^2 for del^2 psi = -omega; zero mode = 0.
+  ! Complexity: O(N) -- one pass over the spectral array.
 
   subroutine kh_poisson_solve(omega_hat, k2, nx, ny, psi_hat)
     integer,        intent(in)  :: nx, ny

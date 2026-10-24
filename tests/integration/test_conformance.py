@@ -1,6 +1,6 @@
 # test_conformance.py -- request-honouring and robustness invariants, all 5 backends
 # Task: KH-018 extension (2026-09-26; section 4 and the forcing checks 2026-10-03)
-# Finding: kh-sim/_audit/FINDING-PASCAL-HTTP-PARAMETER-DROP-2026-09-16.md (v0.5)
+# Finding: development record, finding 2026-09-16 (v0.5)
 #
 # WHY THIS MODULE EXISTS
 #   The reference parameters in conftest.REFERENCE_PARAMS (64x32, 100 steps,
@@ -18,7 +18,7 @@
 #   Before it, a JSON array body made the C++ and Fortran backends compute their
 #   defaults and return 200 - the parameter-drop defect once more.
 #
-#   Section 5 pins contract KH-VAL-2 (_audit/KH-SIM-MODELLING-RULES-v0.1.md,
+#   Section 5 pins contract KH-VAL-2 (development record, modelling rules v0.1,
 #   ruling 2026-10-07): inputs that are computable but describe no state of the
 #   model (K3) or no field on the grid (K4) are refused as 400 naming the field;
 #   nu = |velocity_shear| / Re, so a reversed shear is the mirrored flow and

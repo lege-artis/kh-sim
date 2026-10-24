@@ -1,11 +1,11 @@
 ! test_num_004_convergence.f90 — TC-NUM-KH-004: ETDRK4 temporal convergence order
 !
-! TC-NUM-KH-004 specification (PHYSICS-NUMERICAL-METHODS-v0.1.md §2.3):
+! TC-NUM-KH-004 specification (NM development spec §2.3):
 !   Test target:  ETDRK4 temporal convergence — Richardson dt-halving study
 !   Method:       Run kh_solver_run at T_end=0.1 with four dt values in a strict
 !                 2:1 halving sequence.  Use the finest dt as reference.  Compute
 !                 convergence rates from KE differences relative to the reference run.
-!   Pass criterion (calibrated 2026-05-04, ThinkPad gfortran 13):
+!   Pass criterion (calibrated 2026-05-04, reference workstation, gfortran 13):
 !     rate_k = log2(|KE(dt_k) - KE_ref| / |KE(dt_{k+1}) - KE_ref|) >= 1.2
 !     for k = 1, 2  (two rate estimates, coarse→medium, medium→fine).
 !     If |KE(dt_k) - KE_ref| < ERR_FLOOR (1e-13), noise floor reached;
@@ -29,7 +29,7 @@
 !   err(k) = |KE(dt_{k-1}) - KE_ref|   for k = 1, 2, 3
 !   rate(k) = log2(err(k) / err(k+1))  for k = 1, 2
 !
-! Convergence note (calibrated on ThinkPad, 2026-05-04):
+! Convergence note (calibrated on the reference workstation, 2026-05-04):
 !   Observed rates: 1.22 (L1→L2), 1.59 (L2→L3) — increasing, as expected for
 !   pre-asymptotic convergence.  At dt=0.005..0.000625 the O(dt^4) ETDRK4 term
 !   competes with an O(dt^1) contribution from aliased-mode injection accumulated
@@ -41,7 +41,7 @@
 !
 ! Exit code: 0 = PASS, 1 = FAIL
 !
-! Compilation (DRY-RUN — validate on ThinkPad):
+! Compilation (DRY-RUN — validate natively):
 !   gfortran -O2 -o test_num_004 \
 !       src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 \
 !       src/kh_poisson.f90 src/kh_velocity.f90 src/kh_nonlinear.f90 \

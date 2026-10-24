@@ -17,7 +17,7 @@
 !   kh_velocity_from_psi(psi_hat, kx, ky, nx, ny, u, v)
 !
 ! Reference: kh-sim/shared/physics/KH-PHYSICS.md §2
-! Numerical methods: _config/PHYSICS-NUMERICAL-METHODS-v0.1.md §2.2
+! Numerical methods: shared/canonical-equations/kh-numerical-methods.md
 
 module kh_velocity
   use kh_constants, only: c_double
@@ -41,6 +41,11 @@ contains
   !   nx, ny                  [in]  grid dimensions
   !   u(0:nx-1, 0:ny-1)       [out] x-velocity field (physical space)
   !   v(0:nx-1, 0:ny-1)       [out] y-velocity field (physical space)
+  !
+  ! Reference: Trefethen (2000), Spectral Methods in MATLAB, ch. 3 (periodic
+  !            grids: spectral differentiation via the FFT).
+  ! Convention: u_hat = i*ky*psi_hat, v_hat = -i*kx*psi_hat (u = dpsi/dy, v = -dpsi/dx).
+  ! Complexity: O(N log N) -- two inverse 2D FFTs.
 
   subroutine kh_velocity_from_psi(psi_hat, kx, ky, nx, ny, u, v)
     integer,        intent(in)  :: nx, ny

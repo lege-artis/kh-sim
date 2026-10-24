@@ -19,12 +19,13 @@ Checks
      cited under `routines:`, or under `pending:` or `exempt:` with a reason. A new
      public routine without an entry fails the audit.
   3. Every `pending:` and `exempt:` symbol exists in its file (no stale entries).
-  `pending:` entries (an anchor still to be chosen) are reported but do not fail,
-  except with --strict.
+  `pending:` entries (an anchor still to be chosen) and citations not yet verified
+  against the printed book (`verified: false`) are reported but do not fail, except
+  with --strict, the gate for a strict doctrine C3.
 
 Usage (from the repository root, or with --root)
   python3 scripts/audit_citations.py               exit 0 = PASS
-  python3 scripts/audit_citations.py --strict      pending entries fail too
+  python3 scripts/audit_citations.py --strict      pending and unverified fail too
   python3 scripts/audit_citations.py --self-test   proves the audit fails on defects
 Needs PyYAML.
 """
@@ -278,8 +279,13 @@ def run(root, strict=False, quiet=False):
         % (n_pub, n_hand, len(routines) - n_hand, n_pending, n_exempt))
     for g in pending:
         say('  pending  %s :: %s  (%s)' % (g['file'], ', '.join(g.get('symbols') or []), g['reason']))
+    cits = [(e, c) for e in routines if e.get('status') == 'hand-rolled' for c in (e.get('citations') or [])]
+    unverified = [(e, c) for e, c in cits if c.get('verified') is not True]
+    say('  citations verified against the book: %d of %d' % (len(cits) - len(unverified), len(cits)))
     if strict and n_pending:
         errors.append('%d pending routine(s) - --strict requires every one cited' % n_pending)
+    if strict and unverified:
+        errors.append('%d citation(s) not yet verified against the book - --strict requires all' % len(unverified))
     LAST_ERRORS[:] = errors
     for err in errors:
         say('ERROR ' + err)

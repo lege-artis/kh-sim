@@ -4,7 +4,7 @@ Reference outputs from the Python oracle (`shared/physics/kh_physics.py`) for
 cross-backend validation. All backends (Rust, Scala, C++, Fortran, Pascal) must
 reproduce these diagnostics and field summaries within the specified tolerances.
 
-Per phase 6a design: `_audit/PHASE-6A-GOLDEN-VECTOR-MATRIX-DESIGN-v0.1.md`.
+Per phase 6a design: development record, phase-6a golden-vector design v0.1.
 
 ---
 
@@ -144,4 +144,4 @@ If a backend repeatedly fails even with its override factor, that signals a
 - **OQ-GOLD-3:** V9 v-velocity near-zero — field_rel × 0 = 0 → pure abs comparison;
   handled correctly by hybrid rule (max(1e-10, 1e-7 × 0) = 1e-10 abs threshold).
 - **OQ-GOLD-4:** Cross-backend HTTP tests require all 5 backends running; intended for
-  ThinkPad local bringup initially; Docker compose deferred to phase 9.
+  local bring-up on the reference workstation initially; Docker compose deferred to phase 9.

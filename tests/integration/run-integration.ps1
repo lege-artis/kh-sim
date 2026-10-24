@@ -1,4 +1,4 @@
-# run-integration.ps1 -- KH-018 integration test runner (ThinkPad LDE)
+# run-integration.ps1 -- KH-018 integration test runner (reference-workstation LDE)
 # Task: KH-018
 #
 # PREREQUISITES
@@ -45,7 +45,7 @@ function Write-OK([string]$Text)   { Write-Host "  [OK]   $Text" -ForegroundColo
 function Write-FAIL([string]$Text) { Write-Host "  [FAIL] $Text" -ForegroundColor Red    }
 function Write-INFO([string]$Text) { Write-Host "  [INFO] $Text" -ForegroundColor Yellow }
 
-Write-Header "KH-018 Integration Tests -- ThinkPad LDE"
+Write-Header "KH-018 Integration Tests -- reference-workstation LDE"
 
 # ── Quick LDE health gate ─────────────────────────────────────────────────────
 Write-Header "Pre-flight: LDE health check"

@@ -5,14 +5,14 @@
 ! do not modify without bumping reference version + regenerating reference outputs.
 !
 ! All constants derive from KH-PHYSICS.md §3 defaults and
-! PHYSICS-NUMERICAL-METHODS-v0.1.md §2 (ETDRK4 stack spec).
+! NM development spec §2 (ETDRK4 stack spec).
 !
 ! Usage:
 !   use kh_constants
 !   print *, KH_RE_DEFAULT, KH_LX_DEFAULT
 !
 ! Reference: kh-sim/shared/physics/KH-PHYSICS.md
-! Numerical methods: _config/PHYSICS-NUMERICAL-METHODS-v0.1.md §2
+! Numerical methods: shared/canonical-equations/kh-numerical-methods.md
 
 module kh_constants
   use iso_c_binding, only: c_double
@@ -79,7 +79,7 @@ module kh_constants
   ! Default number of time steps
   integer, parameter :: KH_STEPS_DEFAULT = 100
 
-  ! ── ETDRK4 numerical method parameters (PHYSICS-NUMERICAL-METHODS §2.2) ─────
+  ! ── ETDRK4 numerical method parameters (NM development spec §2.2) ─────
 
   ! CFL safety factor (used in adaptive dt: dt = KH_CFL_FACTOR * min(dx,dy) / |u|_max)
   real(c_double), parameter :: KH_CFL_FACTOR = 0.4_c_double
@@ -88,7 +88,7 @@ module kh_constants
   ! Modes |kx| > KH_DEALIAS_FACTOR * kx_max are zeroed
   real(c_double), parameter :: KH_DEALIAS_FACTOR = 2.0_c_double / 3.0_c_double
 
-  ! ── Validation tolerances (PHYSICS-NUMERICAL-METHODS §1.5) ──────────────────
+  ! ── Validation tolerances (NM development spec §1.5) ──────────────────
 
   ! Linear-stage tolerance: FFT round-trip, Poisson solve
   real(c_double), parameter :: KH_TOL_LINEAR = 1.0e-12_c_double

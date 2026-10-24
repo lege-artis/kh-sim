@@ -1,6 +1,6 @@
 ! test_num_002_poisson.f90 — TC-NUM-KH-002: spectral Poisson solver correctness
 !
-! TC-NUM-KH-002 specification (PHYSICS-NUMERICAL-METHODS-v0.1.md §2.3):
+! TC-NUM-KH-002 specification (NM development spec §2.3):
 !   Test target:  Spectral Poisson solver
 !   Method check: Solve ∇²ψ = -ω where ω is a single Fourier mode cos(2πk·x/Lx);
 !                 compare numerical ψ against analytical solution.
@@ -22,7 +22,7 @@
 !
 ! Exit code: 0 = PASS, 1 = FAIL
 !
-! Compilation (DRY-RUN — validate on ThinkPad):
+! Compilation (DRY-RUN — validate natively):
 !   gfortran -O2 -o test_num_002 \
 !       src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 \
 !       src/kh_poisson.f90 src/kh_velocity.f90 \

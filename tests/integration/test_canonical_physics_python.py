@@ -64,8 +64,8 @@ AUDIT_DIR.mkdir(exist_ok=True)
 # Resumable-compute infrastructure
 # ===========================================================================
 #
-# Restored 2026-07-05 (was lost in the trunk<->thinkpad merge 39c5ab9, which took
-# the thinkpad base). The physics runs below are expensive (CP-7F-A quantitative
+# Restored 2026-07-05 (was lost in the merge of two development branches, 39c5ab9,
+# which took the other branch's base). The physics runs below are expensive (CP-7F-A quantitative
 # is ~36 min). On a normal machine plain `pytest` runs everything inline and this
 # layer is INERT. To make a long run resumable/interruptible, set:
 #     KH_CP7F_CACHE=<dir>     persist raw per-measurement results
@@ -135,7 +135,7 @@ def _run(req: SimulationRequest) -> np.ndarray:
 def _kh_base_flow(ny: int, Ly: float, delta: float, velocity_shear: float = 1.0) -> np.ndarray:
     """Vorticity of the KH base flow: omega = -dU/dy for U = tanh((y-Ly/2)/delta).
 
-    CAVEAT (found 2026-09-15, see _audit/phase-7f-cp7fa-extrapolation-assessment-2026-09-15.md):
+    CAVEAT (found 2026-09-15, see development record, CP-7F-A assessment 2026-09-15):
     a SINGLE tanh layer is not periodic in y. Its mean vorticity 2*U0/Ly cannot be carried by a
     periodic streamfunction, and solve_poisson() zeroes the k=0 mode, so the flow actually
     integrated is  U = tanh(eta) - (2*U0/Ly)*(y - Ly/2)  -- tanh plus a uniform RETURN SHEAR of
@@ -401,7 +401,7 @@ def test_cp7fa_kh_dispersion_qualitative():
 # have two. Its "merged / orbiting" verdict measured the size of that blob, not
 # a merger. The oracle now runs the same E6 specification as every backend, in
 # test_canonical_physics_cp7fc.py (target "oracle").
-# Finding: _audit/FINDING-CP7FC-MERGE-DETECTION-2026-10-06.md.
+# Finding: development record, finding 2026-10-06.
 
 # ---------------------------------------------------------------------------
 # CP-7F-D: MOVED 2026-10-10 to test_canonical_physics_cp7fbd.py (MASTER s3.4 E7)
@@ -452,7 +452,7 @@ def test_cp7fe_nr1986_ch19_poisson():
     (Example Book driver d17r1, printed solution grid). Strict-verbatim against
     the book's printed 2-decimal numbers at the documented 2e-2 gate
     (OQ-7F-PAS-01 printed-precision exception). Framing record:
-    _handoffs/phase-7f-canonical-physics-testbeds/CP7F-E-TRANSCRIPTION-DECISION-2026-06-17.md.
+    development record, CP-7F-E transcription decision 2026-06-17.
 
     Reference: Press, Flannery, Teukolsky, Vetterling, Numerical Recipes in
     Pascal (CUP 1989), sec.17.5 + Example Book (Pascal) d17r1, pp.217-219.

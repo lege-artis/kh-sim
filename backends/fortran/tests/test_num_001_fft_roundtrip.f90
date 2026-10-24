@@ -1,6 +1,6 @@
 ! test_num_001_fft_roundtrip.f90 — TC-NUM-KH-001: FFT2 round-trip correctness
 !
-! TC-NUM-KH-001 specification (PHYSICS-NUMERICAL-METHODS-v0.1.md §2.3):
+! TC-NUM-KH-001 specification (NM development spec §2.3):
 !   Test target:  FFT2 round-trip
 !   Method check: IFFT2(FFT2(field)) == field
 !   Pass criterion: ‖diff‖_∞ ≤ 1e-12 for a random complex field
@@ -11,7 +11,7 @@
 !
 ! Exit code: 0 = PASS, 1 = FAIL
 !
-! Compilation (DRY-RUN — validate on ThinkPad with gfortran 13+):
+! Compilation (DRY-RUN — validate natively with gfortran 13+):
 !   gfortran -O2 -o test_num_001 \
 !       src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 \
 !       tests/test_num_001_fft_roundtrip.f90

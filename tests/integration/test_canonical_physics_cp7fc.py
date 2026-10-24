@@ -4,7 +4,7 @@ specification run against the Python oracle and all five backends.
 
 Specification: MASTER-BRIEF.md s3.3, amendment E6 (2026-10-07), which replaces the
 E3 windows and the six per-suite implementations. Why: finding
-_audit/FINDING-CP7FC-MERGE-DETECTION-2026-10-06.md -- the five backend detectors
+development record, finding 2026-10-06 -- the five backend detectors
 could not see a merged vortex, the oracle's Gaussian variant started from a
 single vorticity maximum, and the six suites ran six different experiments.
 

@@ -1,6 +1,6 @@
 ! test_num_007_energy.f90 — TC-NUM-KH-007: kinetic energy conservation (inviscid limit)
 !
-! TC-NUM-KH-007 specification (PHYSICS-NUMERICAL-METHODS-v0.1.md §2.3):
+! TC-NUM-KH-007 specification (NM development spec §2.3):
 !   Test target:  Energy conservation, Re=∞ (ν=0, purely inviscid)
 !   Method check: Integrate KH shear-layer IC from t=0 to T=0.5;
 !                 verify |KE(T) - KE(0)| / KE(0) ≤ 1e-3.
@@ -32,7 +32,7 @@
 !
 ! Exit code: 0 = PASS, 1 = FAIL
 !
-! Compilation (DRY-RUN — validate on ThinkPad):
+! Compilation (DRY-RUN — validate natively):
 !   gfortran -O2 -o test_num_007 \
 !       src/kh_constants.f90 src/kh_fft.f90 src/kh_grid.f90 \
 !       src/kh_initial_conditions.f90 src/kh_nonlinear.f90 \

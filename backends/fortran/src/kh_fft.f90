@@ -7,7 +7,7 @@
 ! Wraps the hand-rolled Cooley-Tukey radix-2 DIT FFT from the monolithic
 ! kh_physics.f90 into a clean public API.
 !
-! OQ-NUM-01 status (PHYSICS-NUMERICAL-METHODS §9): FFT library choice (FFTW3
+! OQ-NUM-01 status (NM development spec §9): FFT library choice (FFTW3
 ! vs fftpack5) is deferred — this module provides the same algorithm currently
 ! in kh_physics.f90 (hand-rolled, no external dependency) so NUM-KH-FOR-01
 ! compiles without any system library. When OQ-NUM-01 is resolved, swap only
@@ -28,7 +28,7 @@
 !     is viewed as transposed (ix is the "slow" axis, iy the "fast" axis).
 !
 ! Reference: kh-sim/shared/physics/KH-PHYSICS.md §4 (FFT spatial discretisation)
-! Numerical methods: _config/PHYSICS-NUMERICAL-METHODS-v0.1.md §2.2
+! Numerical methods: shared/canonical-equations/kh-numerical-methods.md
 
 module kh_fft
   use kh_constants, only: KH_PI

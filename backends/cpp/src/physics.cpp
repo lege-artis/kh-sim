@@ -7,7 +7,7 @@
 // Canonical:  kh-sim/shared/physics/kh_physics.py
 //
 // Phase 7f extension: forcing API (v0.1 "mode"/"band" + v0.2 rotating band
-//   + linear drag). Design: _audit/PHASE-7F-FORCING-API-DESIGN-v0.1.md.
+//   + linear drag). Design: development record, forcing-API design v0.1.
 // Citation (C3): Numerical Recipes 2007 3rd ed., Press et al., sec. 12.2 eq.
 //   12.2.2 for the Cooley-Tukey FFT convention (forward: exp(-2*pi*i*k*n/N)).
 

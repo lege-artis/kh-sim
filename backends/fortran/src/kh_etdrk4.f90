@@ -64,6 +64,12 @@ contains
   !   phi1(0:nx-1, 0:ny-1) [out] φ₁(L·dt)   = (exp(L·dt)-1)/(L·dt)
   !   phi1h(0:nx-1,0:ny-1) [out] φ₁(L·dt/2) = (exp(L·dt/2)-1)/(L·dt/2)
   !   phi2(0:nx-1, 0:ny-1) [out] φ₂(L·dt)   = (exp(L·dt)-1-L·dt)/(L·dt)²
+  !
+  ! Reference: Cox & Matthews (2002), J. Comput. Phys. 176, p.430 (exponential
+  !            time differencing, ETDRK4 coefficients).
+  ! Convention: L = -nu*k^2, integrated exactly; phi functions by the direct
+  !            formula with a small-argument series.
+  ! Complexity: O(N) -- one pass over the spectral array.
 
   subroutine kh_etdrk4_precompute(L, dt, nx, ny, E, E2, phi1, phi1h, phi2)
     integer,        intent(in)  :: nx, ny
@@ -124,6 +130,10 @@ contains
   !   k2        [in]   k² array
   !   mask      [in]   2/3-rule de-aliasing mask
   !   nx, ny    [in]   grid dimensions
+  !
+  ! Reference: Cox & Matthews (2002), J. Comput. Phys. 176, p.430 (ETDRK4).
+  ! Convention: L = -nu*k^2 exact; four nonlinear stages (omega_hat, a, b, c).
+  ! Complexity: O(N log N) per step -- four nonlinear-term evaluations.
 
   subroutine kh_etdrk4_step(omega_hat, E, E2, phi1, phi1h, phi2, &
                               dt, kx, ky, k2, mask, nx, ny)

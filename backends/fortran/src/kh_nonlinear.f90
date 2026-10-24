@@ -7,7 +7,7 @@
 ! Computes the nonlinear advection term N = -(u·∂ω/∂x + v·∂ω/∂y) in spectral
 ! space, with Orszag 2/3-rule de-aliasing applied after the quadratic product.
 !
-! Algorithm (per PHYSICS-NUMERICAL-METHODS §2.2 step 4):
+! Algorithm (per NM development spec §2.2 step 4):
 !   1. Forward FFT: ω̂ = FFT2(ω)
 !   2. Spectral gradients: ∂̂ω/∂x = i·kx·ω̂,  ∂̂ω/∂y = i·ky·ω̂
 !   3. IFFT → dox = ∂ω/∂x,  doy = ∂ω/∂y  (physical space)
@@ -21,7 +21,7 @@
 !   kh_dealias(a_hat, mask, nx, ny)
 !
 ! Reference: kh-sim/shared/physics/KH-PHYSICS.md §4; Orszag 1971
-! Numerical methods: _config/PHYSICS-NUMERICAL-METHODS-v0.1.md §2.1 (2/3 rule)
+! Numerical methods: shared/canonical-equations/kh-numerical-methods.md (2/3 rule)
 
 module kh_nonlinear
   use kh_constants, only: c_double
@@ -49,6 +49,12 @@ contains
   !   mask(0:nx-1, 0:ny-1)   [in]  2/3-rule de-aliasing mask (from kh_grid_dealias_mask)
   !   nx, ny                 [in]  grid dimensions
   !   N_hat(0:nx-1, 0:ny-1)  [out] de-aliased spectral nonlinear term
+  !
+  ! Reference: Trefethen (2000), Spectral Methods in MATLAB, ch. 3 (spectral
+  !            derivatives via the FFT); Orszag (1971), J. Atmos. Sci. 28(6),
+  !            p.1074 (2/3-rule de-aliasing of the quadratic product).
+  ! Convention: N = -u*domega/dx - v*domega/dy, product formed in physical space.
+  ! Complexity: O(N log N) -- 2D FFTs of the derivatives and of the product.
 
   subroutine kh_nonlinear_rhs(omega, u, v, kx, ky, mask, nx, ny, N_hat)
     integer,        intent(in)  :: nx, ny

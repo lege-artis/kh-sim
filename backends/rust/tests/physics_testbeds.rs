@@ -1,9 +1,9 @@
 /// physics_testbeds.rs — phase 7d physics testbeds, Rust backend, Mode 1 HTTP.
 ///
 /// Implements Tier 1+2+3 tests (TB-1a/b/c, TB-2a-e, TB-3a/b) from
-///   _audit/PHASE-7C-NONLINEAR-TESTBED-DESIGN-v0.1.md §4.
+///   development record, phase-7c design v0.1 §4.
 /// Tier 4 + TB-3c marked PENDING per
-///   _handoffs/phase-7d-physics-testbeds/MASTER-BRIEF.md §2.5.
+///   development record, phase-7d brief §2.5.
 ///
 /// Mode 1 (HTTP): POST /simulate to running Rust server on port 8001.
 /// Tolerances: MASTER-BRIEF §1 post-calibration values (Python session 2026-05-20).

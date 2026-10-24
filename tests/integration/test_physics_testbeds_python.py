@@ -2,12 +2,12 @@
 test_physics_testbeds_python.py — phase 7d physics testbeds for Python ref backend.
 
 Implements Tier 1+2+3 tests from
-  _audit/PHASE-7C-NONLINEAR-TESTBED-DESIGN-v0.1.md §4.
+  development record, phase-7c design v0.1 §4.
 Tier 4 tests + TB-3c marked PENDING per
-  _handoffs/phase-7d-physics-testbeds/MASTER-BRIEF.md §2.5.
+  development record, phase-7d brief §2.5.
 
 Mode 2 (in-process): direct simulate() calls, no HTTP.
-Reference: _handoffs/phase-7d-physics-testbeds/CHILD-python.md
+Reference: development record, phase-7d brief
 """
 
 from __future__ import annotations

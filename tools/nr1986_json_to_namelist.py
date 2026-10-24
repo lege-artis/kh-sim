@@ -7,7 +7,7 @@ The Fortran backend has no JSON parser; its IO idiom is Fortran namelist
 the golden vector JSON directly; only Fortran needs this transcode.
 
 CANONICAL SCHEMA: nr1986-pascal-ch19/v1, as defined verbatim in
-  _handoffs/phase-7f-canonical-physics-testbeds/NR1986-EXAMPLE-TO-LOOKUP.md.
+  development record, NR 1986 example lookup.
 That doc is the single source of truth for what Pete transcribes. This tool
 parses THAT schema (problem.*, expected.sample_points[], expected.integrals[]).
 

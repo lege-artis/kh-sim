@@ -3,7 +3,7 @@
 // Ports tests/integration/test_physics_testbeds_python.py to C++.
 // Mode 1: POST /simulate to http://localhost:8003
 // backend_factor = 1.0 (post-FFT-sign-fix; matches Python ref at machine precision)
-// Reference: _handoffs/phase-7d-physics-testbeds/CHILD-cpp.md
+// Reference: development record, phase-7d brief
 
 #include <algorithm>
 #include <cmath>
@@ -480,7 +480,7 @@ static TR tb3a() {
             }
         }
 
-        // 300 s timeout: 256^2 x 1000 steps can take ~30s on MacBook
+        // 300 s timeout: 256^2 x 1000 steps can take ~30s on a laptop
         auto resp = post_simulate(
             make_payload(N, N, lx, ly, dt, nsteps, 1.0 / nu, 1.0, 0.0, 0, &omega0),
             300);

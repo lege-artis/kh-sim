@@ -1,6 +1,6 @@
 ! test_num_003_etdrk4_linear.f90 — TC-NUM-KH-003: ETDRK4 on linear scalar ODE
 !
-! TC-NUM-KH-003 specification (PHYSICS-NUMERICAL-METHODS-v0.1.md §2.3):
+! TC-NUM-KH-003 specification (NM development spec §2.3):
 !   Test target:  ETDRK4 on linear scalar test
 !   Method check: dy/dt = λ·y, λ < 0; integrate to t = 10/|λ|; compare to e^(λ·t)
 !   Pass criterion: rel err ≤ 1e-10
@@ -19,7 +19,7 @@
 !
 ! Exit code: 0 = PASS, 1 = FAIL
 !
-! Compilation (DRY-RUN — validate on ThinkPad):
+! Compilation (DRY-RUN — validate natively):
 !   gfortran -O2 -o test_num_003 \
 !       src/kh_constants.f90 src/kh_grid.f90 src/kh_fft.f90 \
 !       src/kh_poisson.f90 src/kh_velocity.f90 src/kh_nonlinear.f90 \

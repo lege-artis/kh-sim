@@ -1,9 +1,9 @@
 ! test_physics_testbeds.f90 — phase 7d physics testbeds, Fortran backend (Mode 2)
 !
 ! Implements Tier 1+2+3 tests from
-!   _audit/PHASE-7C-NONLINEAR-TESTBED-DESIGN-v0.1.md S4.
+!   development record, phase-7c design v0.1 S4.
 ! Tier 4 tests + TB-3c marked PENDING per
-!   _handoffs/phase-7d-physics-testbeds/MASTER-BRIEF.md S2.5.
+!   development record, phase-7d brief S2.5.
 !
 ! Mode 2 (in-process): all tests call the Fortran physics kernel directly
 ! via kh_physics::rk4_step + supporting modules.  No HTTP server needed.
@@ -887,7 +887,7 @@ contains
   !   128x128 alone, exceeds sandbox wall-time budget).
   !   Python oracle showed machine-eps floor (1.4e-15) already at N=32;
   !   2-grid test demonstrates the floor is reached on the smallest grid.
-  !   Full 4-grid run expected to PASS on ThinkPad with O(N log N) FFTW.
+  !   Full 4-grid run expected to PASS natively with O(N log N) FFTW.
   ! Pass: all rms errors < 1e-12 (machine-eps floor rule per MASTER-BRIEF)
   !   + monotone non-increasing (skipped if max_err < 1e-13)
   ! ============================================================================

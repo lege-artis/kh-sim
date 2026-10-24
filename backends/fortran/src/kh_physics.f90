@@ -38,6 +38,9 @@ module kh_physics
 contains
 
   ! ── Poisson solve: psi_hat = omega_hat / k^2, zero mode = 0 ─────────────────
+  ! Reference: Trefethen (2000), Spectral Methods in MATLAB, ch. 3 (periodic
+  !            grids: spectral differentiation and the 2D Poisson solve via the FFT).
+  ! Complexity: O(N) -- one pass over the spectral array.
   subroutine solve_poisson(omega_hat, kx, ky, nx, ny, psi_hat)
     integer,        intent(in)  :: nx, ny
     complex(8),     intent(in)  :: omega_hat(0:nx-1, 0:ny-1)
@@ -61,6 +64,9 @@ contains
 
   ! ── Velocity from streamfunction ──────────────────────────────────────────────
   ! u_hat = i*ky*psi_hat,  v_hat = -i*kx*psi_hat
+  ! Reference: Trefethen (2000), Spectral Methods in MATLAB, ch. 3 (periodic
+  !            grids: spectral differentiation via the FFT).
+  ! Complexity: O(N log N) -- two inverse 2D FFTs.
   subroutine velocity_from_psi(psi_hat, kx, ky, nx, ny, u, v)
     integer,        intent(in)  :: nx, ny
     complex(8),     intent(in)  :: psi_hat(0:nx-1, 0:ny-1)
@@ -86,6 +92,11 @@ contains
   ! ── Vorticity RHS with 2/3-rule dealiasing ────────────────────────────────────
   ! f(ω) = -u·∂ω/∂x - v·∂ω/∂y + ν·∇²ω
   ! Nonlinear term dealiased via KH-NM-4 (Orszag 1971).
+  ! Reference: Trefethen (2000), Spectral Methods in MATLAB, ch. 3 (spectral
+  !            derivatives via the FFT); Orszag (1971), J. Atmos. Sci. 28(6),
+  !            p.1074 (2/3-rule de-aliasing of the quadratic product).
+  ! Convention: rhs = -u*domega/dx - v*domega/dy + nu*laplacian(omega).
+  ! Complexity: O(N log N) -- 2D FFTs of the derivatives and of the product.
   subroutine vorticity_rhs(omega, u_in, v_in, nu, kx, ky, mask, nx, ny, rhs)
     integer,        intent(in)  :: nx, ny
     real(c_double), intent(in)  :: omega(0:nx-1, 0:ny-1)

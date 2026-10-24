@@ -11,9 +11,10 @@ and against textbook physics.
 
 ## Status
 
-`v0.1.2` — doctrine audits: textbook citations (C3) and complexity (C4) of the hand-rolled
-backends, checked in CI; see [`RELEASE-NOTES-v0.1.2.md`](RELEASE-NOTES-v0.1.2.md). What is validated
-and how: [`RELEASE-NOTES-v0.1.0.md`](RELEASE-NOTES-v0.1.0.md).
+`v0.1.3` — every textbook method of the hand-rolled backends carries a citation, checked in CI
+(doctrine C3; complexity audit C4 since [`v0.1.2`](RELEASE-NOTES-v0.1.2.md)); see
+[`RELEASE-NOTES-v0.1.3.md`](RELEASE-NOTES-v0.1.3.md). What is validated and how:
+[`RELEASE-NOTES-v0.1.0.md`](RELEASE-NOTES-v0.1.0.md).
 
 ---
 

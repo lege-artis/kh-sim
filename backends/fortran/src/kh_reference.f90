@@ -14,7 +14,7 @@
 !   dt:      0.001
 !   steps:   100  (T = 0.1)
 !
-! Reference output (computed by this Fortran stack, gfortran 13, ThinkPad,
+! Reference output (computed by this Fortran stack, gfortran 13, reference workstation,
 ! commit a814cc9 + c08b71e + f27b832, validated 2026-05-04):
 !
 !   KE        =   1.1281E-01   (KH_REF_KE        = 0.112810)
@@ -36,7 +36,7 @@
 !
 ! References:
 !   kh_constants.f90 — KH_REF_KE, KH_REF_ENSTROPHY, KH_REF_MAX_VORT, KH_REF_TOL
-!   PHYSICS-NUMERICAL-METHODS-v0.1.md §2.3 (TC-NUM-KH-008)
+!   NM development spec §2.3 (TC-NUM-KH-008)
 
 module kh_reference
   use kh_constants

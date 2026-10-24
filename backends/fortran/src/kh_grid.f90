@@ -17,7 +17,7 @@
 !   FFT wavenumbers:   kx(ix) = 2π·fftfreq(ix, nx) / dx  (angular, rad/m)
 !
 ! Reference: kh-sim/shared/physics/KH-PHYSICS.md §4
-! Numerical methods: _config/PHYSICS-NUMERICAL-METHODS-v0.1.md §2.2
+! Numerical methods: shared/canonical-equations/kh-numerical-methods.md
 
 module kh_grid
   use kh_constants

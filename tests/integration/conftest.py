@@ -1,5 +1,5 @@
 # conftest.py — shared fixtures for KH-SIM integration test suite
-# Task: KH-018 | Device: ThinkPad (LDE stack must be running)
+# Task: KH-018 | Device: reference workstation (LDE stack must be running)
 #
 # Environment overrides (all optional):
 #   KH_RUST_URL     default http://localhost:8001
@@ -42,7 +42,7 @@ BACKEND_URLS: dict[str, str] = {name: _backend_url(name) for name in BACKEND_NAM
 LOG_SERVICE_URL: str = os.environ.get("KH_LOG_URL", "http://localhost:8006")
 
 # ── Reference data ────────────────────────────────────────────────────────────
-# The oracle golden vector V1 (class A2, _audit/KH-SIM-MODELLING-RULES-v0.1.md
+# The oracle golden vector V1 (class A2, development record, modelling rules v0.1
 # s4). It replaced shared/physics/kh_reference_output.json, retired 2026-10-08:
 # a pre-5c copy (A3, situations S2 + S9) that every backend was graded against
 # at +-5 %, which hid the 8.5e-10 dealiasing difference. One source of truth:

@@ -4,7 +4,7 @@
 generate_kh_golden_vectors.py
 Generate kh-sim/shared/golden-vectors/*.json from the Python reference oracle.
 
-Per phase 6a design: _audit/PHASE-6A-GOLDEN-VECTOR-MATRIX-DESIGN-v0.1.md §2-§7
+Per phase 6a design: development record, phase-6a golden-vector design v0.1 §2-§7
 
 Usage:
     python tools/generate_kh_golden_vectors.py [--out DIR] [--only V1,V2,...] [--force]

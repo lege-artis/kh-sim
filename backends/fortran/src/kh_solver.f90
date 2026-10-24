@@ -14,7 +14,7 @@
 !   backends/fortran/src/kh_physics.f90  (kh_simulate_c / kh_simulate_rk4)
 !
 ! TC-NUM-KH-001/002/005/006/007/008 certify the canonical RK4 scheme and
-! target the kh_physics.f90 path (see `_audit/OQ-RESOLUTIONS-2026-05-13.md`).
+! target the kh_physics.f90 path (see development record, resolutions 2026-05-13).
 !
 ! Do not modify without bumping ETDRK4-reference version + regenerating
 ! TC-NUM-KH-003/004 reference outputs.
@@ -46,7 +46,7 @@
 !
 ! References:
 !   KH-PHYSICS.md §3–4 (IC, flow parameters)
-!   PHYSICS-NUMERICAL-METHODS-v0.1.md §2.4 (solver architecture)
+!   NM development spec §2.4 (solver architecture)
 
 module kh_solver
   use kh_constants

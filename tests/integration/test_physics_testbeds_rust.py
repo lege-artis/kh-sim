@@ -28,7 +28,7 @@ Stage-2 execution note:
 
   Tolerances match the native test exactly (backend_factor = 1.0).
 
-  The native cargo test remains the canonical test for ThinkPad re-validation;
+  The native cargo test remains the canonical test for native re-validation;
   this harness is the sandbox-approved counting run for phase-7d closure, per
   the same precedent established by the Pascal child session (2026-06-11).
 

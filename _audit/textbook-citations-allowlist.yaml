@@ -13,10 +13,13 @@
 #              surname and the year of every citation, the section (S12.2, sec. 12.2
 #              or with the section sign), the equation and page when given, the
 #              sign_convention text when given, and the complexity_claim.
+#              Each citation carries `verified`: true once the owner has checked
+#              section, equation and page against the printed book.
 #              library-backed entries (Rust rustfft, Scala JTransforms) are exempt
 #              from C1-C4 and only listed.
 #   pending:   public routines whose textbook anchor is still to be chosen. Reported,
-#              not failing; `audit_citations.py --strict` fails on them.
+#              not failing. `audit_citations.py --strict` fails on any pending routine
+#              and on any citation not yet verified against the book.
 #   exempt:    public routines that implement no textbook method, with the reason.
 # Every public routine of the Fortran and Pascal sources (Fortran `public ::`
 # lists, Pascal unit interface sections) must appear in one of the three; a new
@@ -25,7 +28,7 @@
 # complexity_audit_test: the doctrine C4 test of the complexity claim, where one exists.
 # License: Apache-2.0 (with the sources it governs).
 
-schema_version: 0.2.0
+schema_version: 0.3.0
 project: kh-sim
 
 routines:
@@ -40,6 +43,7 @@ routines:
         equation: "12.2.2"
         page: ~
         note: "decimation-in-time butterfly recurrence"
+        verified: false
     sign_convention: "exp(-2*pi*i*k*n/N)"
     complexity_claim: "O(N log N)"
     complexity_audit_test: backends/fortran/tests/test_complexity_c4.f90   # 1D through kh_fft_forward_2d/inverse_2d, nx = 1
@@ -55,6 +59,7 @@ routines:
         equation: "12.2.2"
         page: 394
         note: "decimation-in-time butterfly recurrence; routine FOUR1"
+        verified: false
     sign_convention: "exp(-2*pi*i*k*n/N)"
     complexity_claim: "O(N log N)"
     complexity_audit_test: backends/pascal/tests/test_complexity_c4.pas
@@ -70,6 +75,7 @@ routines:
         equation: "12.2.2"
         page: ~
         note: "decimation-in-time butterfly recurrence"
+        verified: false
     sign_convention: "exp(-2*pi*i*k*n/N)"
     complexity_claim: "O(N log N)"
     complexity_audit_test: ~     # not wired: fft1d is file-static in physics.cpp
@@ -86,6 +92,7 @@ routines:
         equation: "17.1.3"
         page: ~
         note: "classical fourth-order Runge-Kutta"
+        verified: false
     sign_convention: "weights 1/6, 1/3, 1/3, 1/6"
     complexity_claim: "O(N log N) per step"
     complexity_audit_test: ~
@@ -100,6 +107,7 @@ routines:
         equation: "15.1.3"
         page: ~
         note: "classical fourth-order Runge-Kutta; routine RK4"
+        verified: false
     sign_convention: "weights 1/6, 1/3, 1/3, 1/6"
     complexity_claim: "O(N log N) per step"
     complexity_audit_test: ~
@@ -115,6 +123,7 @@ routines:
         equation: ~
         page: 1074
         note: "2/3 rule for quadratic nonlinearities"
+        verified: false
     sign_convention: "(2/3)"
     complexity_claim: "O(N)"
     complexity_audit_test: ~
@@ -129,8 +138,195 @@ routines:
         equation: ~
         page: 1074
         note: "2/3 rule for quadratic nonlinearities"
+        verified: false
     sign_convention: "(2/3)"
     complexity_claim: "O(N)"
+    complexity_audit_test: ~
+
+  # -- Spectral Poisson solve, spectral derivative, advection term ---------------------
+  # Anchor: Trefethen (2000) ch. 3, as in shared/canonical-equations/kh-numerical-methods.md.
+  - file: backends/fortran/src/kh_poisson.f90
+    symbol: kh_poisson_solve
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: Trefethen2000
+        section: "3"
+        equation: ~
+        page: ~
+        note: "ch. 3, periodic grids: spectral differentiation via the FFT"
+        verified: false
+    sign_convention: "psi_hat = omega_hat / k^2"
+    complexity_claim: "O(N)"
+    complexity_audit_test: ~
+
+  - file: backends/fortran/src/kh_physics.f90
+    symbol: solve_poisson
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: Trefethen2000
+        section: "3"
+        equation: ~
+        page: ~
+        note: "ch. 3, periodic grids: spectral differentiation via the FFT"
+        verified: false
+    sign_convention: "psi_hat = omega_hat / k^2"
+    complexity_claim: "O(N)"
+    complexity_audit_test: ~
+
+  - file: backends/pascal/src/kh_physics.pas
+    symbol: SolvePoisson
+    language: pascal
+    status: hand-rolled
+    citations:
+      - reference_key: Trefethen2000
+        section: "3"
+        equation: ~
+        page: ~
+        note: "ch. 3, periodic grids: spectral differentiation via the FFT"
+        verified: false
+    sign_convention: "psi_hat = omega_hat / k^2"
+    complexity_claim: "O(N)"
+    complexity_audit_test: ~
+
+  - file: backends/fortran/src/kh_velocity.f90
+    symbol: kh_velocity_from_psi
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: Trefethen2000
+        section: "3"
+        equation: ~
+        page: ~
+        note: "ch. 3, periodic grids: spectral differentiation via the FFT"
+        verified: false
+    sign_convention: "u_hat = i*ky*psi_hat"
+    complexity_claim: "O(N log N)"
+    complexity_audit_test: ~
+
+  - file: backends/fortran/src/kh_physics.f90
+    symbol: velocity_from_psi
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: Trefethen2000
+        section: "3"
+        equation: ~
+        page: ~
+        note: "ch. 3, periodic grids: spectral differentiation via the FFT"
+        verified: false
+    sign_convention: "u_hat = i*ky*psi_hat"
+    complexity_claim: "O(N log N)"
+    complexity_audit_test: ~
+
+  - file: backends/pascal/src/kh_physics.pas
+    symbol: VelFromPsi
+    language: pascal
+    status: hand-rolled
+    citations:
+      - reference_key: Trefethen2000
+        section: "3"
+        equation: ~
+        page: ~
+        note: "ch. 3, periodic grids: spectral differentiation via the FFT"
+        verified: false
+    sign_convention: "u_hat = i*ky*psi_hat"
+    complexity_claim: "O(N log N)"
+    complexity_audit_test: ~
+
+  - file: backends/fortran/src/kh_nonlinear.f90
+    symbol: kh_nonlinear_rhs
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: Trefethen2000
+        section: "3"
+        equation: ~
+        page: ~
+        note: "ch. 3, periodic grids: spectral differentiation via the FFT"
+        verified: false
+      - reference_key: Orszag1971
+        section: ~
+        equation: ~
+        page: 1074
+        note: "2/3 rule for quadratic nonlinearities"
+        verified: false
+    sign_convention: "-u*domega/dx - v*domega/dy"
+    complexity_claim: "O(N log N)"
+    complexity_audit_test: ~
+
+  - file: backends/fortran/src/kh_physics.f90
+    symbol: vorticity_rhs
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: Trefethen2000
+        section: "3"
+        equation: ~
+        page: ~
+        note: "ch. 3, periodic grids: spectral differentiation via the FFT"
+        verified: false
+      - reference_key: Orszag1971
+        section: ~
+        equation: ~
+        page: 1074
+        note: "2/3 rule for quadratic nonlinearities"
+        verified: false
+    sign_convention: "-u*domega/dx - v*domega/dy"
+    complexity_claim: "O(N log N)"
+    complexity_audit_test: ~
+
+  - file: backends/pascal/src/kh_physics.pas
+    symbol: VortRHS
+    language: pascal
+    status: hand-rolled
+    citations:
+      - reference_key: Trefethen2000
+        section: "3"
+        equation: ~
+        page: ~
+        note: "ch. 3, periodic grids: spectral differentiation via the FFT"
+        verified: false
+      - reference_key: Orszag1971
+        section: ~
+        equation: ~
+        page: 1074
+        note: "2/3 rule for quadratic nonlinearities"
+        verified: false
+    sign_convention: "-u*domega/dx - v*domega/dy"
+    complexity_claim: "O(N log N)"
+    complexity_audit_test: ~
+
+  # -- ETDRK4 alternate scheme (KH-NM-3b; no request uses it) -------------------------
+  - file: backends/fortran/src/kh_etdrk4.f90
+    symbol: kh_etdrk4_precompute
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: CoxMatthews2002
+        section: ~
+        equation: ~
+        page: 430
+        note: "exponential time differencing; ETDRK4"
+        verified: false
+    sign_convention: "L = -nu*k^2"
+    complexity_claim: "O(N)"
+    complexity_audit_test: ~
+
+  - file: backends/fortran/src/kh_etdrk4.f90
+    symbol: kh_etdrk4_step
+    language: fortran
+    status: hand-rolled
+    citations:
+      - reference_key: CoxMatthews2002
+        section: ~
+        equation: ~
+        page: 430
+        note: "exponential time differencing; ETDRK4"
+        verified: false
+    sign_convention: "L = -nu*k^2"
+    complexity_claim: "O(N log N) per step"
     complexity_audit_test: ~
 
   # -- Library-backed FFTs (exempt from C1-C4, doctrine s3.5/s3.6) ---------------------
@@ -146,22 +342,7 @@ routines:
     status: library-backed
     note: "JTransforms 3.1 DoubleFFT_2D"
 
-pending:
-  - file: backends/fortran/src/kh_poisson.f90
-    symbols: [kh_poisson_solve]
-    reason: "spectral Poisson solve (division by -|k|^2); textbook anchor to be chosen"
-  - file: backends/fortran/src/kh_velocity.f90
-    symbols: [kh_velocity_from_psi]
-    reason: "spectral derivative (multiplication by i k); textbook anchor to be chosen"
-  - file: backends/fortran/src/kh_nonlinear.f90
-    symbols: [kh_nonlinear_rhs]
-    reason: "pseudo-spectral advection term (spectral derivatives, product in physical space); textbook anchor to be chosen"
-  - file: backends/fortran/src/kh_etdrk4.f90
-    symbols: [kh_etdrk4_precompute, kh_etdrk4_step]
-    reason: "ETDRK4 alternate scheme; module header cites Cox & Matthews (2002) and Kassam & Trefethen (2005) - per-routine header with verified equation numbers to be written"
-  - file: backends/pascal/src/kh_physics.pas
-    symbols: [SolvePoisson, VelFromPsi, VortRHS]
-    reason: "private Pascal counterparts of the spectral Poisson solve, spectral derivative and advection term; same anchor as the Fortran routines"
+pending: []
 
 exempt:
   - file: backends/fortran/src/kh_fft.f90
@@ -242,6 +423,20 @@ references:
     volume: 28
     number: 6
     pages: "1074"
+
+  Trefethen2000:
+    authors: ["Trefethen, L. N."]
+    year: 2000
+    title: "Spectral Methods in MATLAB"
+    publisher: "SIAM"
+
+  CoxMatthews2002:
+    authors: ["Cox, S. M.", "Matthews, P. C."]
+    year: 2002
+    title: "Exponential time differencing for stiff systems"
+    journal: "J. Comput. Phys."
+    volume: 176
+    pages: "430-455"
 
   Boyd2001:
     authors: ["Boyd, J. P."]

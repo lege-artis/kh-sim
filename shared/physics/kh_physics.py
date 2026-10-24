@@ -41,7 +41,7 @@ class SimulationRequest:
     perturbation_mode:     int   = 2
     initial_omega:         Optional[List[float]] = None  # flattened Nx*Ny
     # Phase-7f steady-forcing extension (OQ-7F-PY-01; see
-    # _audit/PHASE-7F-FORCING-API-DESIGN-v0.1.md for the locked convention).
+    # development record, forcing-API design v0.1 for the locked convention).
     forcing_type:          str   = "none"   # "none" | "mode" | "band"
     forcing_amplitude:     float = 0.0
     forcing_kx:            int   = 1        # "mode": integer mode index along x
@@ -210,7 +210,7 @@ def build_forcing_field(nx: int, ny: int, lx: float, ly: float,
                         fkmin: float, fkmax: float) -> Optional[np.ndarray]:
     """
     Steady (time-independent) vorticity forcing field F(x,y) -- phase-7f extension.
-    Locked cross-backend convention: _audit/PHASE-7F-FORCING-API-DESIGN-v0.1.md s3.
+    Locked cross-backend convention: development record, forcing-API design v0.1 s3.
 
       "none": returns None (also when amp == 0).
       "mode": F = A * cos(2*pi*fkx*x/lx) * cos(2*pi*fky*y/ly)   (CP-7F-D)

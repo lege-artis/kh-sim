@@ -68,7 +68,7 @@ type
 
   { Raised for a request that cannot be computed as given. The HTTP layer maps
     it to 400 with a "field"; any other exception during Simulate maps to 500.
-    See _audit/FINDING-PASCAL-HTTP-PARAMETER-DROP-2026-09-16.md, B-3.        }
+    See development record, finding 2026-09-16, B-3.        }
   EKhInvalid = class(Exception)
   public
     Field: String;
@@ -420,6 +420,9 @@ begin
 end;
 
 { -- Spectral Poisson: psi_hat = omega_hat / k^2, zero mode = 0 ------------- }
+{ Reference: Trefethen (2000), Spectral Methods in MATLAB, ch. 3 (periodic grids:
+             spectral differentiation and the 2D Poisson solve via the FFT).
+  Complexity: O(N) -- one pass over the spectral array.                       }
 procedure SolvePoisson(const oh: TComplexArr; const kx, ky: TRealArr;
   nx, ny: Integer; out ph: TComplexArr);
 var i, j, idx: Integer; k2: Double;
@@ -440,6 +443,9 @@ end;
 { -- Velocity from streamfunction ------------------------------------------- }
 { u_hat = i*ky*psi_hat  ->  re=-ky*psi_hat.im, im=+ky*psi_hat.re                           }
 { v_hat = -i*kx*psi_hat ->  re=+kx*psi_hat.im, im=-kx*psi_hat.re                           }
+{ Reference: Trefethen (2000), Spectral Methods in MATLAB, ch. 3 (periodic grids:
+             spectral differentiation via the FFT).
+  Complexity: O(N log N) -- two inverse 2D FFTs.                              }
 procedure VelFromPsi(const ph: TComplexArr; const kx, ky: TRealArr;
   nx, ny: Integer; out u, v: TRealArr);
 var i, j, idx, n: Integer;
@@ -461,6 +467,10 @@ end;
 
 { -- Vorticity RHS: -u*domega/dx - v*domega/dy + nu*nabla^2omega -------------------------- }
 { Nonlinear term dealiased via 2/3-rule (KH-NM-4, Orszag 1971).             }
+{ Reference: Trefethen (2000), Spectral Methods in MATLAB, ch. 3 (spectral
+             derivatives via the FFT); Orszag (1971), J. Atmos. Sci. 28(6),
+             p.1074 (2/3-rule de-aliasing of the quadratic product).
+  Complexity: O(N log N) -- 2D FFTs of the derivatives and of the product.    }
 procedure VortRHS(const omega, uin, vin, kx, ky: TRealArr;
   nx, ny: Integer; nu: Double; drag: Double; use_force: Boolean;
   const force: TRealArr; out rhs: TRealArr);

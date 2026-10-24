@@ -1,5 +1,5 @@
 # Makefile -- kh-sim Pascal backend (KH-007), phase-7f canonical-physics targets.
-# Companion to build.ps1 (the Windows/ThinkPad canonical build tool). This
+# Companion to build.ps1 (the canonical Windows build tool). This
 # Makefile provides the `make test-canonical` idiom used by CHILD-pascal.md S1
 # for POSIX/native FPC parity.
 #

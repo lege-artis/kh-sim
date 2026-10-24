@@ -13,7 +13,7 @@ unit kh_forcing;
   Array layout: flat row-major, field[i*ny + j], (i,j)=(x,y) -- SAME layout as
   omega in kh_physics.pas. Grid: x_i = i*lx/nx (i=0..nx-1), y_j = j*ly/ny.
 
-  SCOPE (2026-06-16, Opus, MacBook -- authored-not-compiled; FPC = ThinkPad):
+  SCOPE (2026-06-16; authored before the native FPC build):
     This unit provides the pure forcing-FIELD builders only. The forced RK4
     integrator (Fortran's rk4_step_forced) needs the solver's FFT/Poisson/
     velocity internals, which kh_physics.pas does NOT export. The brief says add
