@@ -11,9 +11,10 @@ and against textbook physics.
 
 ## Status
 
-`v0.1.3` — every textbook method of the hand-rolled backends carries a citation, checked in CI
-(doctrine C3; complexity audit C4 since [`v0.1.2`](RELEASE-NOTES-v0.1.2.md)); see
-[`RELEASE-NOTES-v0.1.3.md`](RELEASE-NOTES-v0.1.3.md). What is validated and how:
+`v0.1.4` — the HTTP backends refuse a request key the contract does not define (400 naming it,
+with a hint for foreign names such as `nsteps`); see [`RELEASE-NOTES-v0.1.4.md`](RELEASE-NOTES-v0.1.4.md).
+Citations (C3) and complexity (C4) of the hand-rolled backends are checked in CI since
+[`v0.1.3`](RELEASE-NOTES-v0.1.3.md) and [`v0.1.2`](RELEASE-NOTES-v0.1.2.md). What is validated and how:
 [`RELEASE-NOTES-v0.1.0.md`](RELEASE-NOTES-v0.1.0.md).
 
 ---

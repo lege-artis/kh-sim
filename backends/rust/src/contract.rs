@@ -26,7 +26,9 @@
 ///   K4 forcing (amplitude != 0, 2026-10-10): mode forcing_kx/ky beyond the
 ///      2/3-rule band, or a band with 3*floor(kmax) > 2*(min(nx, ny)/2) -> 400 field
 ///   K3 a band with no integer mode kmin <= |k| <= kmax             -> 400 forcing_kmax
-///   K5 warnings in the response (warnings()); K7 unknown keys logged.
+///   K5 warnings in the response (warnings()).
+///   K7 (2026-10-24) a key the contract does not define, checked first; with
+///      several, the first in byte order; foreign names get a hint  -> 400 field
 /// t_start (2026-10-10): the time of the initial field (forcing phase, t_final).
 use serde_json::{Map, Value};
 
@@ -126,6 +128,27 @@ pub fn parse(body: &[u8]) -> Result<SimulationRequest, Invalid> {
     let o = v
         .as_object()
         .ok_or_else(|| invalid("body", "request body must be a JSON object"))?;
+
+    // KH-VAL-2, K7 (step 2, 2026-10-24): a key the contract does not define is refused
+    // before any value is read; with several, the first in byte order is named.
+    const KNOWN: [&str; 21] = [
+        "grid_nx", "grid_ny", "domain_lx", "domain_ly", "dt", "steps", "reynolds_number",
+        "velocity_shear", "perturbation_amplitude", "perturbation_mode", "initial_omega",
+        "init_omega", "forcing_type", "forcing_amplitude", "forcing_kx", "forcing_ky",
+        "forcing_kmin", "forcing_kmax", "forcing_omega0", "linear_drag", "t_start"];
+    const FOREIGN: [(&str, &str); 12] = [
+        ("nsteps", "steps"), ("n_steps", "steps"), ("num_steps", "steps"),
+        ("nx", "grid_nx"), ("ny", "grid_ny"), ("lx", "domain_lx"),
+        ("ly", "domain_ly"), ("re", "reynolds_number"), ("Re", "reynolds_number"),
+        ("reynolds", "reynolds_number"), ("amplitude", "perturbation_amplitude"), ("mode", "perturbation_mode")];
+    if let Some(u) = o.keys().filter(|k| !KNOWN.contains(&k.as_str())).min() {
+        eprintln!("KH-VAL-2 K7: unknown key '{u}' refused");
+        let msg = match FOREIGN.iter().find(|(f, _)| *f == u.as_str()) {
+            Some((_, to)) => format!("unknown key '{u}' (did you mean '{to}'?)"),
+            None => format!("unknown key '{u}' (not part of the request contract)"),
+        };
+        return Err(invalid(u, msg));
+    }
 
     // Start from the serde defaults, so a key that is absent means exactly what
     // it meant before this module existed.
@@ -265,17 +288,6 @@ pub fn parse(body: &[u8]) -> Result<SimulationRequest, Invalid> {
             "perturbation_amplitude has no effect with initial_omega (send 0 or omit it)"));
     }
 
-    // KH-VAL-2, K7: unknown keys are logged now and refused once no client sends one.
-    const KNOWN: [&str; 21] = [
-        "grid_nx", "grid_ny", "domain_lx", "domain_ly", "dt", "steps", "reynolds_number",
-        "velocity_shear", "perturbation_amplitude", "perturbation_mode", "initial_omega",
-        "init_omega", "forcing_type", "forcing_amplitude", "forcing_kx", "forcing_ky",
-        "forcing_kmin", "forcing_kmax", "forcing_omega0", "linear_drag", "t_start"];
-    for k in o.keys() {
-        if !KNOWN.contains(&k.as_str()) {
-            eprintln!("KH-VAL-2 K7: unknown key '{k}' ignored");
-        }
-    }
     Ok(r)
 }
 

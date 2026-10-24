@@ -39,7 +39,9 @@
 //   K3 forcing: a band with no integer mode kmin <= |k| <= kmax (nothing would be
 //     forced, R1)                                         -> 400 field forcing_kmax
 //   K5 computed but possibly not resolved: "warnings" in the response (warnings())
-//   K7 unknown keys: logged to stderr (refused in a later version, after a census)
+//   K7 (2026-10-24) a key the contract does not define, checked first: with
+//     several, the first in byte order; foreign names get a hint
+//     (nsteps -> steps)                                   -> 400 field <the key>
 //
 // t_start (2026-10-10): the time of the initial field. Time-dependent forcing is
 // evaluated at t_start + t, and t_final = t_start + steps*dt, so a run continued from
@@ -170,6 +172,33 @@ inline Request parse(const std::string& body, bool radix2, bool forcing_supporte
     if (!j.is_object())
         throw Invalid("body", "request body must be a JSON object");
 
+    // KH-VAL-2, K7 (step 2, 2026-10-24): a key the contract does not define is refused
+    // before any value is read; with several, the first in byte order is named.
+    static const char* known[] = {
+        "grid_nx", "grid_ny", "domain_lx", "domain_ly", "dt", "steps", "reynolds_number",
+        "velocity_shear", "perturbation_amplitude", "perturbation_mode", "initial_omega",
+        "init_omega", "forcing_type", "forcing_amplitude", "forcing_kx", "forcing_ky",
+        "forcing_kmin", "forcing_kmax", "forcing_omega0", "linear_drag", "t_start"};
+    static const char* const foreign[][2] = {
+        {"nsteps", "steps"}, {"n_steps", "steps"}, {"num_steps", "steps"},
+        {"nx", "grid_nx"}, {"ny", "grid_ny"}, {"lx", "domain_lx"},
+        {"ly", "domain_ly"}, {"re", "reynolds_number"}, {"Re", "reynolds_number"},
+        {"reynolds", "reynolds_number"}, {"amplitude", "perturbation_amplitude"}, {"mode", "perturbation_mode"}};
+    const std::string* unknown = nullptr;
+    for (auto it = j.begin(); it != j.end(); ++it) {
+        bool found = false;
+        for (const char* k : known) if (it.key() == k) { found = true; break; }
+        if (!found && (!unknown || it.key() < *unknown)) unknown = &it.key();
+    }
+    if (unknown) {
+        const std::string u = *unknown;
+        const char* hint = nullptr;
+        for (const auto& f : foreign) if (u == f[0]) { hint = f[1]; break; }
+        std::fprintf(stderr, "KH-VAL-2 K7: unknown key '%s' refused\n", u.c_str());
+        throw Invalid(u, "unknown key '" + u + "'" + (hint ? std::string(" (did you mean '") + hint + "'?)"
+                                                           : std::string(" (not part of the request contract)")));
+    }
+
     Request r;
     read_int   (j, "grid_nx",                r.grid_nx);
     read_int   (j, "grid_ny",                r.grid_ny);
@@ -276,18 +305,6 @@ inline Request parse(const std::string& body, bool radix2, bool forcing_supporte
         throw Invalid("perturbation_amplitude",
                       "perturbation_amplitude has no effect with initial_omega (send 0 or omit it)");
 
-    // KH-VAL-2, K7: unknown keys are logged now and refused once no client sends one.
-    static const char* known[] = {
-        "grid_nx", "grid_ny", "domain_lx", "domain_ly", "dt", "steps", "reynolds_number",
-        "velocity_shear", "perturbation_amplitude", "perturbation_mode", "initial_omega",
-        "init_omega", "forcing_type", "forcing_amplitude", "forcing_kx", "forcing_ky",
-        "forcing_kmin", "forcing_kmax", "forcing_omega0", "linear_drag", "t_start"};
-    for (auto it = j.begin(); it != j.end(); ++it) {
-        bool found = false;
-        for (const char* k : known) if (it.key() == k) { found = true; break; }
-        if (!found)
-            std::fprintf(stderr, "KH-VAL-2 K7: unknown key '%s' ignored\n", it.key().c_str());
-    }
     return r;
 }
 

@@ -34,7 +34,9 @@ final case class KhInvalid(field: String, message: String)
   *   K4 forcing (amplitude != 0, 2026-10-10): mode forcing_kx/ky beyond the 2/3-rule
   *      band, or a band with 3*floor(kmax) > 2*(min(nx, ny)/2)                -> 400 field
   *   K3 a band with no integer mode kmin <= |k| <= kmax                  -> 400 forcing_kmax
-  *   K5 warnings in the response (warnings); K7 unknown keys logged to stderr.
+  *   K5 warnings in the response (warnings).
+  *   K7 (2026-10-24) a key the contract does not define, checked first; with several,
+  *      the first in byte order; foreign names get a hint                  -> 400 field
   * t_start (2026-10-10): the time of the initial field (forcing phase, t_final).
   */
 object Contract:
@@ -171,10 +173,23 @@ object Contract:
     "init_omega", "forcing_type", "forcing_amplitude", "forcing_kx", "forcing_ky",
     "forcing_kmin", "forcing_kmax", "forcing_omega0", "linear_drag", "t_start")
 
-  /** KH-VAL-2, K7: unknown keys are logged now and refused once no client sends one. */
-  private def logUnknown(o: JsonObject): Unit =
-    o.keys.filterNot(Known.contains).foreach(k =>
-      System.err.println(s"KH-VAL-2 K7: unknown key '$k' ignored"))
+  private val Foreign: Map[String, String] = Map(
+    "nsteps" -> "steps", "n_steps" -> "steps", "num_steps" -> "steps",
+    "nx" -> "grid_nx", "ny" -> "grid_ny", "lx" -> "domain_lx",
+    "ly" -> "domain_ly", "re" -> "reynolds_number", "Re" -> "reynolds_number",
+    "reynolds" -> "reynolds_number", "amplitude" -> "perturbation_amplitude", "mode" -> "perturbation_mode")
+
+  /** KH-VAL-2, K7 (step 2, 2026-10-24): a key the contract does not define is refused
+    * before any value is read; with several, the first in byte order is named. */
+  private def checkUnknown(o: JsonObject): Either[KhInvalid, Unit] =
+    o.keys.filterNot(Known.contains).minOption match
+      case None => Right(())
+      case Some(u) =>
+        System.err.println(s"KH-VAL-2 K7: unknown key '$u' refused")
+        val msg = Foreign.get(u) match
+          case Some(to) => s"unknown key '$u' (did you mean '$to'?)"
+          case None     => s"unknown key '$u' (not part of the request contract)"
+        Left(KhInvalid(u, msg))
 
   /** KH-VAL-2, K5: computed, but possibly not resolved. Same conditions, order and
     * prefixes in every backend and the oracle (kh_physics.request_warnings). */
@@ -193,7 +208,7 @@ object Contract:
     for
       json  <- io.circe.parser.parse(body).left.map(_ => KhInvalid("body", "request body is not valid JSON"))
       o     <- json.asObject.toRight(KhInvalid("body", "request body must be a JSON object"))
-      _      = logUnknown(o)
+      _     <- checkUnknown(o)
       nx    <- readInt(o, "grid_nx")
       ny    <- readInt(o, "grid_ny")
       lx    <- readDouble(o, "domain_lx")

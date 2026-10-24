@@ -127,9 +127,9 @@ endif()
 # ── Canonical-physics test executable (phase 7f) ──────────────────────────────
 # Mode 1: HTTP POST /simulate to running server on port 8003.
 # Guarded by same EXISTS pattern (host-only; absent in Docker).
-# CP-7F-A is heavy (256^2); on a native machine run the server (kh-sim-cpp)
-# then ./canonical_physics ALL. CP-7F-B, C and D run from the shared harnesses
-# (tests/integration/test_canonical_physics_cp7fbd.py, ..._cp7fc.py).
+# Every CP-7F testbed runs from a shared harness in tests/integration
+# (test_canonical_physics_cp7fa.py, ..._cp7fbd.py, ..._cp7fc.py); C++ takes no part
+# in CP-7F-E. This executable only prints where each one runs; one CTest entry.
 if(EXISTS "${CMAKE_SOURCE_DIR}/tests/canonical_physics.cpp")
   add_executable(canonical_physics
     tests/canonical_physics.cpp

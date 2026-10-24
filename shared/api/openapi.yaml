@@ -17,7 +17,7 @@ info:
 
     Request contract: KH-VAL-1 (development record, finding 2026-09-16
     v0.5) and KH-VAL-2 (development record, modelling rules v0.1, ruling 2026-10-07).
-  version: "2.1.0"
+  version: "2.2.0"
 
 servers:
   - url: http://localhost:8001
@@ -83,6 +83,7 @@ components:
 
     SimulationRequest:
       type: object
+      additionalProperties: false
       description: |
         Every key is optional; a missing key takes the default below. Validated before
         the solver runs; a refused request is 400 {"error", "field"}.
@@ -100,8 +101,10 @@ components:
         perturbation_amplitude sent together with initial_omega, which replaces the
         analytic field and would silently ignore it. Viscosity is
         nu = |velocity_shear| / reynolds_number;
-        velocity_shear = 0 is an inviscid run. Unknown keys are logged by the backend
-        (K7) and will be refused in a later version.
+        velocity_shear = 0 is an inviscid run. K7 (2.2.0, 2026-10-24): a key not listed
+        below is refused, 400 naming it, before any value is read; with several, the
+        first in byte order; a foreign name with a contract equivalent gets a hint in
+        the message (nsteps -> steps).
         Forcing (2.1.0, 2026-10-10): every backend computes forcing_type mode and band
         (the Fortran server refused them until ruling 8). With forcing_amplitude != 0,
         K4 refuses a mode forcing_kx / forcing_ky beyond the 2/3-rule band

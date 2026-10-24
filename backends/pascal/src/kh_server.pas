@@ -26,7 +26,9 @@ program kh_server;
     K4 forcing (amplitude <> 0, 2026-10-10): mode forcing_kx/ky beyond the
        2/3-rule band, or a band with 3*floor(kmax) > 2*(min(nx, ny) div 2) -> 400 field
     K3 a band with no integer mode kmin <= |k| <= kmax        -> 400 forcing_kmax
-    K5 "warnings" in the response (KhWarnings); K7 unknown keys logged.
+    K5 "warnings" in the response (KhWarnings).
+    K7 (2026-10-24) a key the contract does not define, checked first; with
+       several, the first in byte order; foreign names get a hint -> 400 field
   t_start (2026-10-10): the time of the initial field (forcing phase, t_final).
 }
 {$mode objfpc}{$H+}
@@ -119,27 +121,41 @@ begin
 end;
 
 { -- Request parsing -------------------------------------------------------- }
-{ KH-VAL-2, K7: unknown keys are logged now and refused once no client sends one. }
-procedure LogUnknownKeys(jo: TJSONObject);
+{ KH-VAL-2, K7 (step 2, 2026-10-24): a key the contract does not define is refused
+  before any value is read; with several, the first in byte order is named. }
+procedure CheckUnknownKeys(jo: TJSONObject);
 const
   KNOWN: array[0..20] of string = (
     'grid_nx', 'grid_ny', 'domain_lx', 'domain_ly', 'dt', 'steps', 'reynolds_number',
     'velocity_shear', 'perturbation_amplitude', 'perturbation_mode', 'initial_omega',
     'init_omega', 'forcing_type', 'forcing_amplitude', 'forcing_kx', 'forcing_ky',
     'forcing_kmin', 'forcing_kmax', 'forcing_omega0', 'linear_drag', 't_start');
-var i, k: Integer; found: Boolean;
+  FOREIGN_FROM: array[0..11] of string = (
+    'nsteps', 'n_steps', 'num_steps', 'nx', 'ny', 'lx', 'ly', 're', 'Re', 'reynolds', 'amplitude', 'mode');
+  FOREIGN_TO: array[0..11] of string = (
+    'steps', 'steps', 'steps', 'grid_nx', 'grid_ny', 'domain_lx', 'domain_ly', 'reynolds_number', 'reynolds_number', 'reynolds_number', 'perturbation_amplitude', 'perturbation_mode');
+var i, k: Integer; found, have: Boolean; u, msg: string;
 begin
+  have := False; u := '';
   for i := 0 to jo.Count - 1 do begin
     found := False;
     for k := Low(KNOWN) to High(KNOWN) do
       if jo.Names[i] = KNOWN[k] then begin found := True; Break; end;
-    if not found then begin
-      WriteLn(StdErr, 'KH-VAL-2 K7: unknown key ''', jo.Names[i], ''' ignored');
-      { StdErr is a buffered text file when it is a pipe (docker logs): without the
-        flush the line stays in the buffer and the K7 census reads nothing. }
-      Flush(StdErr);
+    if (not found) and ((not have) or (jo.Names[i] < u)) then begin
+      u := jo.Names[i]; have := True;
     end;
   end;
+  if not have then Exit;
+  msg := 'unknown key ''' + u + ''' (not part of the request contract)';
+  for k := Low(FOREIGN_FROM) to High(FOREIGN_FROM) do
+    if u = FOREIGN_FROM[k] then begin
+      msg := 'unknown key ''' + u + ''' (did you mean ''' + FOREIGN_TO[k] + '''?)';
+      Break;
+    end;
+  WriteLn(StdErr, 'KH-VAL-2 K7: unknown key ''', u, ''' refused');
+  { StdErr is a buffered text file when it is a pipe (docker logs): flush it. }
+  Flush(StdErr);
+  raise EKhInvalid.CreateField(u, msg);
 end;
 
 function ParseSimRequest(const body: string): TSimRequest;
@@ -157,7 +173,7 @@ begin
   end;
   jo := TJSONObject(jd);
   try
-    LogUnknownKeys(jo);
+    CheckUnknownKeys(jo);
     { Defaults = openapi.yaml = the oracle (128 x 64; was 64 x 32 until 2026-10-09). }
     Result.nx    := JGetI(jo, 'grid_nx',               128);
     Result.ny    := JGetI(jo, 'grid_ny',               64);

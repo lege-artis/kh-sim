@@ -34,9 +34,10 @@
 #   refused every forcing request, and a run split into two requests restarted the
 #   rotating forcing at t = 0 (2.5e-4 away from the unsplit run in vorticity).
 #
-# WHAT IS NOT TESTED HERE
-#   Unknown keys (K7) are logged, not refused, until a census shows no client
-#   sends one; section 5 pins that they are still ignored.
+#   Section 5 also pins K7, step 2 (2026-10-24): a key the contract does not define
+#   is refused as 400 naming it, before any value is read. Until then such a key was
+#   logged and ignored; the census of the live logs (2026-10-09, 2026-10-24) found
+#   none but the nsteps this module sent on purpose.
 
 import json
 import math
@@ -538,14 +539,43 @@ def test_conformance_warnings(backend_name: str, case: str, backend_urls: dict) 
     assert oracle == expected, f"oracle/{case}: {oracle}"
 
 
+# K7 (step 2, 2026-10-24): a key the contract does not define. Before, nsteps was
+# ignored and the run took the default steps - a plausible wrong answer (R1).
+UNKNOWN_KEY_CASES = {
+    # case: (extra keys, field the 400 names, the hint the message must carry or None)
+    "foreign_name_nsteps": ({"nsteps": 5}, "nsteps", "steps"),
+    "no_foreign_name":     ({"frobnicate": 1}, "frobnicate", None),
+}
+
+
+@pytest.mark.parametrize("case", sorted(UNKNOWN_KEY_CASES))
 @pytest.mark.parametrize("backend_name", BACKEND_NAMES)
-def test_conformance_unknown_key_is_still_ignored(backend_name: str, backend_urls: dict) -> None:
-    """K7, step 1 of 2: an unknown key is logged by the backend and ignored. This
-    test pins that state; it changes to "400" when the census is empty and the
-    contract refuses unknown keys."""
+def test_conformance_unknown_key_is_400(backend_name: str, case: str, backend_urls: dict) -> None:
+    """K7: an unknown key is refused, 400 naming it; a foreign name with a contract
+    equivalent (nsteps -> steps) says which key was meant."""
     url = _require(backend_name, backend_urls)
-    body = _ok_body(backend_name, _post(url, dict(BASE, nsteps=5)), "BASE + nsteps")
-    assert body.get("steps_completed") == BASE["steps"], body.get("steps_completed")
+    extra, field, hint = UNKNOWN_KEY_CASES[case]
+    resp = _post(url, dict(BASE, **extra), timeout=15)
+    assert resp.status_code == 400, (
+        f"{backend_name}/{case}: expected 400, got {resp.status_code}: {resp.text[:200]}")
+    body = resp.json()
+    assert body.get("field") == field, f"{backend_name}/{case}: {resp.text[:200]}"
+    msg = body.get("error", "")
+    if hint:
+        assert f"did you mean '{hint}'" in msg, f"{backend_name}/{case}: no hint in {msg!r}"
+    else:
+        assert "did you mean" not in msg, f"{backend_name}/{case}: unexpected hint in {msg!r}"
+
+
+@pytest.mark.parametrize("backend_name", BACKEND_NAMES)
+def test_conformance_unknown_key_is_checked_first(backend_name: str, backend_urls: dict) -> None:
+    """K7 is recognised by the parser, before any value: with two unknown keys and an
+    invalid grid_nx, the 400 names the first unknown key in byte order - the same
+    answer from every backend."""
+    url = _require(backend_name, backend_urls)
+    resp = _post(url, dict(BASE, grid_nx=0, zz_unknown=1, aa_unknown=2), timeout=15)
+    assert resp.status_code == 400, f"{backend_name}: {resp.status_code} {resp.text[:200]}"
+    assert resp.json().get("field") == "aa_unknown", f"{backend_name}: {resp.text[:200]}"
 
 
 # -- 6. Forcing over HTTP (ruling 8, 2026-10-10) -----------------------------------
