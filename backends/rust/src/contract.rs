@@ -36,6 +36,11 @@ use crate::models::SimulationRequest;
 
 pub const MAX_AXIS: i64 = 65536;
 pub const MAX_CELLS: i64 = 4_194_304;
+/// The largest request body read (2026-10-26): a request at MAX_CELLS with initial_omega,
+/// at most 32 bytes per JSON number, plus 1 MiB for the other keys. axum's default of 2 MiB
+/// refused every request above ~300x300 cells that carries initial_omega (413 in plain
+/// text, before the contract was consulted); the CP-7F-B2 run at 512^2 found it.
+pub const MAX_BODY_BYTES: usize = MAX_CELLS as usize * 32 + (1 << 20);
 
 /// A request the backend refuses: HTTP 400 {"error": message, "field": field}.
 #[derive(Debug)]

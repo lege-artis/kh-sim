@@ -1,7 +1,7 @@
 """
-test_canonical_physics_cp7fbd.py -- CP-7F-B (forced 2-D turbulence, enstrophy-range
-slope) and CP-7F-D (forced Taylor-Green steady state): ONE specification each, run
-against the Python oracle and all five backends.
+test_canonical_physics_cp7fbd.py -- CP-7F-B (forced 2-D turbulence, enstrophy range: B1 the
+finite-Re regime, B2 the asymptotic cascade) and CP-7F-D (forced Taylor-Green steady state):
+ONE specification each, run against the Python oracle and all five backends.
 
 Specification: MASTER-BRIEF.md s3.2 and s3.4, amendment E7 (2026-10-10). Ruling 2
 (2026-10-07) replaced the per-language CP-7F suites by one shared HTTP harness; ruling 8
@@ -44,6 +44,32 @@ CP-7F-B  forced 2-D turbulence, regime + reproducibility gate (E5, 2026-06-13; n
   Cost: 80 000 steps at 128^2 + 30 000 at 256^2 per target - from about an hour
   (oracle, Rust) to several hours (Pascal). Run only with KH_CP7FB=1; resumable with
   KH_CP7F_CACHE=<dir> (one state file per target after every request).
+
+CP-7F-B2 the asymptotic enstrophy cascade, k^-3 with Kraichnan's log correction (E10, 2026-10-24)
+  Configuration R7 of the k^-3 scan (development record, 2026-10-24): L = 2 pi, Re 40000
+  (nu = 2.5e-5), band forcing A = 2 on 4 <= |k| <= 6, forcing_omega0 5, linear drag 0.01. The
+  B1 forcing scale (k 10..12) leaves no range below k_d (83 at Re 5000; the B1 fit [16, 64] lies
+  in the viscous range, and Pi_Z falls from 1.0 to 0.46 across it): k_f 4..6 at k_d ~ 130 opens
+  [2 k_f, k_d/3] = [12, 44].
+  Spin-up, by the oracle ONCE per run and shared by all targets (ruling 2026-10-24; B1 keeps
+  the per-backend spin-up check): the B1 initial field at 128^2, t 0 -> 400 (dt 0.002), 256^2
+  t 400 -> 430, 512^2 t 430 -> 440 (dt 0.001); test_cp7fb2_spinup, cached in KH_CP7F_CACHE.
+  Window, every target: 512^2, t 440 -> 460, 40 requests of 500 steps (dt 0.001, peak Courant
+  number ~0.25), one spectrum per request; windows (440, 450] and (450, 460].
+  Observables on k in [12, 44]: the slope of the mean E(k); the enstrophy flux
+  Pi_Z(k) = sum_{q > k} T_Z(q) over the viscous dissipation eta_visc = 2 nu P (T_Z the transfer
+  of the oracle's dealiased nonlinear term, computed by the harness from each returned field);
+  the flatness of the log-compensated spectrum k^3 E(k) [ln(k/k_f)]^(1/3) (reported). The
+  reference slope of k^-3 [ln(k/k_f)]^-1/3 on this range is -3.221; drag steepens it by
+  xi ~ 0.10 + 5.3 alpha eta^-1/3 (scan, r = 0.93). Asserted: slope, stationarity, flux mean and
+  plateau, monotone; every bound the oracle reference +- 3 sigma of the procedure.
+  Run only with KH_CP7FB2=1; the spin-up first, then the targets. Oracle reference (one run,
+  2026-10-25): slope -3.492, Pi_Z/eta_visc 0.938, cv 0.064. On the reference workstation,
+  2026-10-25/26, all six targets: slope -3.5127 (windows -3.5451 / -3.4847), stationarity
+  0.060, Pi_Z/eta_visc 1.047 (cv 0.092), k_d 129, no rise - equal to four decimals, because
+  the targets share one spin-up and over 20 time units their round-off differences grow only
+  from ~1e-15 to ~1e-9 (peak Courant number of the last request). B1, spun up per target over
+  110 time units, separates them (-4.12 .. -4.16).
 
 Targets: "oracle" runs shared/physics/kh_physics.py in-process; the five backends are
 reached over HTTP at conftest.BACKEND_URLS (KH_<B>_URL overrides). With
@@ -272,28 +298,134 @@ def b_fit(E: np.ndarray) -> float:
     return _slope(k, E[k])
 
 
-def _cache(target: str):
+# One CP-7F-B stage = one spec: the request parameters, the plan of grids, where the spectra
+# are sampled and fitted. B1 is the E5/E7 stage above, unchanged; a second stage is added as
+# another entry (k^-3 regime scan, cycle n+1).
+B_SPECS = {
+    "B1": {"params": B_PARAMS, "plan": [B_STAGE1, B_STAGE2], "initial": B_STAGE1[0],
+           "sample_grid": B_STAGE2[0], "sample_from": B_SAMPLE_FROM, "split": 100.0,
+           "fit": B_FIT, "cache": "cp7fb"},
+}
+
+# --------------------------------------------------------------------------- CP-7F-B2
+# B2: the asymptotic enstrophy cascade (E10, 2026-10-24). Configuration R7 of the k^-3 scan
+# (development record, 2026-10-24): forcing at k 4..6 with slowly rotating phases, so a
+# range [2 k_f, k_d/3] = [12, 44] opens below the dissipation wavenumber (k_d ~ 130 at 512^2,
+# k_dealias 170), and weak drag. The spin-up (inverse cascade to the box-scale condensate,
+# time scale 1/(2 alpha) = 50) is run ONCE by the oracle and shared by every target of a run
+# (ruling 2026-10-24); each target then runs the 512^2 window from that field. B1 keeps the
+# long per-backend spin-up check.
+B2_PARAMS = dict(B_PARAMS, reynolds_number=40000.0, forcing_kmin=4.0, forcing_kmax=6.0,
+                 forcing_omega0=5.0, forcing_amplitude=2.0, linear_drag=0.01)
+B2_T_128, B2_T_256, B2_T_512 = 400.0, 430.0, 440.0   # spin-up ends per grid (time units)
+B2_SPINUP = ((128, B2_T_128, 0.002, 5000), (256, B2_T_256, 0.001, 5000), (512, B2_T_512, 0.001, 1000))
+B2_WINDOW = (512, 40, 500)      # 40 requests x 500 steps at dt 0.001: 20 time units, 40 spectra
+B2_FIT = (12, 44)               # [2 k_f, k_d/3], k_f = 5 (band centre), k_d ~ 130
+B2_KF = 5.0
+B_SPECS["B2"] = {"params": B2_PARAMS, "plan": [B2_WINDOW], "initial": "B2-spinup",
+                 "sample_grid": 512, "sample_from": B2_T_512, "split": B2_T_512 + 10.0,
+                 "fit": B2_FIT, "cache": "cp7fb2"}
+
+
+def b_kraichnan_reference(fit=B2_FIT, kf=B2_KF) -> float:
+    """Least-squares slope, over the fit range, of Kraichnan's (1971) log-corrected enstrophy
+    range E(k) ~ k^-3 [ln(k/k_f)]^-1/3: the k^-3 law as it reads on a finite range."""
+    k = np.arange(fit[0], fit[1] + 1, dtype=float)
+    return _slope(k, k ** -3.0 * np.log(k / kf) ** (-1.0 / 3.0))
+
+
+def b2_spinup(log=print):
+    """The shared B2 spin-up, run by the oracle through the request contract: returns
+    (omega at 512^2, t). Cached and resumable (KH_CP7F_CACHE/cp7fb2-spinup.npz, one state per
+    request); without a cache it runs in-process."""
     d = os.environ.get("KH_CP7F_CACHE")
-    return pathlib.Path(d) / f"cp7fb-{target}-state.npz" if d else None
+    cache = pathlib.Path(d) / "cp7fb2-spinup.npz" if d else None
+    st = {"i": 0, "t": 0.0, "omega": b_initial_field(B2_SPINUP[0][0])}
+    if cache and cache.exists():
+        z = np.load(cache, allow_pickle=False)
+        st = {"i": int(z["i"]), "t": float(z["t"]), "omega": z["omega"]}
+    plan, t0 = [], 0.0
+    for n, t_end, dt, steps in B2_SPINUP:
+        plan += [(n, dt, steps)] * int(round((t_end - t0) / (dt * steps)))
+        t0 = t_end
+    oracle = _Oracle()
+    while st["i"] < len(plan):
+        n, dt, steps = plan[st["i"]]
+        omega = st["omega"] if st["omega"].shape[0] == n else spectral_upsample(st["omega"], n)
+        req = dict(B2_PARAMS, grid_nx=n, grid_ny=n, dt=dt, steps=steps, t_start=st["t"],
+                   initial_omega=[float(v) for v in omega.ravel()])
+        body = oracle.advance(req)
+        st = {"i": st["i"] + 1, "t": float(body["t_final"]),
+              "omega": _field(body, n, req, f"B2 spin-up request {st['i']}")}
+        if st["i"] % 10 == 0 or st["i"] == len(plan):
+            log(f"CP-7F-B2 spin-up: request {st['i']}/{len(plan)} t = {st['t']:g} grid {n} "
+                f"E {body['diagnostics']['kinetic_energy']:.4g} cfl {body['diagnostics']['cfl_peak']:.3f}")
+        if cache:
+            cache.parent.mkdir(parents=True, exist_ok=True)
+            tmp = cache.with_name("cp7fb2-spinup.tmp.npz")
+            np.savez(tmp, i=st["i"], t=st["t"], omega=st["omega"])
+            os.replace(tmp, cache)
+    n_last = B2_SPINUP[-1][0]
+    assert abs(st["t"] - B2_SPINUP[-1][1]) < 1e-6 and st["omega"].shape == (n_last, n_last), (st["t"], st["omega"].shape)
+    return st["omega"], st["t"]
 
 
-def b_run(engine, log=print) -> dict:
-    """Run the CP-7F-B experiment on one target; resumes from KH_CP7F_CACHE."""
-    cache = _cache(engine.name)
-    state = {"i": 0, "t": 0.0, "omega": b_initial_field(), "spectra": [], "times": [], "rows": []}
+def b_transfer(w: np.ndarray):
+    """Enstrophy transfer of a field: shell sums over every shell round(|k|) (the lattice
+    corners included) of Re(conj(w_hat) N_hat), N = the oracle's dealiased -(u.grad w)
+    (vorticity_rhs with nu = 0), and the palinstrophy P = 0.5 <|grad w|^2>. Computed by the
+    harness from the returned field, the same way for every target. The flux through k is
+    Pi_Z(k) = sum over shells q > k (b_flux)."""
+    n = w.shape[0]
+    KX, KY = kh_physics._wavenumbers(n, n, TWO_PI / n, TWO_PI / n)
+    psi_hat = kh_physics.solve_poisson(np.fft.rfft2(w), KX, KY, n, n)
+    u, v = kh_physics.velocity_from_psi_hat(psi_hat, KX, KY, n, n)
+    N = kh_physics.vorticity_rhs(w, u, v, 0.0, KX, KY, n, n)
+    wh, Nh = np.fft.fft2(w) / n ** 2, np.fft.fft2(N) / n ** 2
+    k2, shells = _shells(n)
+    tz = np.bincount(shells.ravel(), weights=np.real(np.conj(wh) * Nh).ravel(),
+                     minlength=int(shells.max()) + 1)
+    return tz, float(np.sum(0.5 * k2 * np.abs(wh) ** 2))
+
+
+def b_flux(tz: np.ndarray) -> np.ndarray:
+    """Pi_Z(k) = sum_{q > k} T_Z(q), for k = 0 .. len(tz) - 1 (positive: toward small scales)."""
+    return np.cumsum(tz[::-1])[::-1] - tz
+
+
+def _cache(target: str, spec: dict):
+    d = os.environ.get("KH_CP7F_CACHE")
+    return pathlib.Path(d) / f"{spec['cache']}-{target}-state.npz" if d else None
+
+
+def b_run(engine, spec_name: str = "B1", log=print) -> dict:
+    """Run one CP-7F-B stage on one target; resumes from KH_CP7F_CACHE."""
+    spec = B_SPECS[spec_name]
+    cache = _cache(engine.name, spec)
+    tag = "CP-7F-B" if spec_name == "B1" else f"CP-7F-{spec_name}"
     if cache and cache.exists():
         z = np.load(cache, allow_pickle=False)
         state = {"i": int(z["i"]), "t": float(z["t"]), "omega": z["omega"],
                  "spectra": [list(r) for r in z["spectra"]], "times": list(z["times"]),
-                 "rows": json.loads(str(z["rows"]))}
-        log(f"CP-7F-B {engine.name}: resumed at request {state['i']}, t = {state['t']}")
-    plan = [(B_STAGE1[0], B_STAGE1[2])] * B_STAGE1[1] + [(B_STAGE2[0], B_STAGE2[2])] * B_STAGE2[1]
+                 "rows": json.loads(str(z["rows"])),
+                 "transfer": [list(r) for r in z["transfer"]] if "transfer" in z.files else [],
+                 "palinstrophy": list(z["palinstrophy"]) if "palinstrophy" in z.files else []}
+        log(f"{tag} {engine.name}: resumed at request {state['i']}, t = {state['t']}")
+    else:   # a resumed target never needs the spin-up again
+        if spec["initial"] == "B2-spinup":
+            omega0, t_init = b2_spinup(log)
+        else:
+            omega0, t_init = b_initial_field(spec["initial"]), 0.0
+        state = {"i": 0, "t": t_init, "omega": omega0,
+                 "spectra": [], "times": [], "rows": [], "transfer": [], "palinstrophy": []}
+    plan = [(g, steps) for g, reqs, steps in spec["plan"] for _ in range(reqs)]
+    params = spec["params"]
     while state["i"] < len(plan):
         n, steps = plan[state["i"]]
         omega = state["omega"]
         if omega.shape[0] != n:
             omega = spectral_upsample(omega, n)
-        req = dict(B_PARAMS, grid_nx=n, grid_ny=n, steps=steps, t_start=state["t"],
+        req = dict(params, grid_nx=n, grid_ny=n, steps=steps, t_start=state["t"],
                    initial_omega=[float(v) for v in omega.ravel()])
         t0 = time.time()
         body = engine.advance(req)
@@ -305,32 +437,56 @@ def b_run(engine, log=print) -> dict:
                "warnings": body.get("warnings", [])}
         state["rows"].append(row)
         state["t"], state["omega"], state["i"] = float(body["t_final"]), omega, state["i"] + 1
-        if n == B_STAGE2[0] and state["t"] > B_SAMPLE_FROM + 1e-9:
+        if n == spec["sample_grid"] and state["t"] > spec["sample_from"] + 1e-9:
             state["spectra"].append([float(v) for v in shell_spectrum(omega)])
             state["times"].append(state["t"])
-        log(f"CP-7F-B {engine.name}: request {row['i'] + 1}/{len(plan)} t = {row['t_final']:g} "
+            tz, pal = b_transfer(omega)
+            state["transfer"].append([float(v) for v in tz])
+            state["palinstrophy"].append(pal)
+        log(f"{tag} {engine.name}: request {row['i'] + 1}/{len(plan)} t = {row['t_final']:g} "
             f"omega_rms {row['omega_rms']:.4f} cfl {row['cfl_peak']} ({row['wall_s']} s)")
         if cache:
             cache.parent.mkdir(parents=True, exist_ok=True)
+            arr = lambda x: np.asarray(x, float) if x else np.zeros((0, 0))  # noqa: E731
             np.savez(cache, i=state["i"], t=state["t"], omega=state["omega"],
-                     spectra=np.asarray(state["spectra"], float) if state["spectra"] else np.zeros((0, 0)),
-                     times=np.asarray(state["times"], float), rows=json.dumps(state["rows"]))
+                     spectra=arr(state["spectra"]), times=np.asarray(state["times"], float),
+                     rows=json.dumps(state["rows"]), transfer=arr(state["transfer"]),
+                     palinstrophy=np.asarray(state["palinstrophy"], float))
     S = np.asarray(state["spectra"])
     T = np.asarray(state["times"])
-    mean, w1, w2 = S.mean(axis=0), S[T <= 100.0 + 1e-9].mean(axis=0), S[T > 100.0 + 1e-9].mean(axis=0)
-    k = np.arange(B_FIT[0], B_FIT[1])
+    split = spec["split"]
+    mean, w1, w2 = S.mean(axis=0), S[T <= split + 1e-9].mean(axis=0), S[T > split + 1e-9].mean(axis=0)
+    fit = spec["fit"]
+    fitk = lambda E: _slope(np.arange(fit[0], fit[1] + 1), E[fit[0]:fit[1] + 1])  # noqa: E731
+    k = np.arange(fit[0], fit[1])
     rises = [int(kk) for kk in k if mean[kk + 1] > B_MONOTONE * mean[kk]]
-    return {"slope": b_fit(mean), "slope_w1": b_fit(w1), "slope_w2": b_fit(w2),
-            "stationarity": abs(b_fit(w1) - b_fit(w2)), "monotone_rises_at_k": rises,
-            "samples": len(T), "times": T.tolist(), "E_mean": mean.tolist(),
-            "E_w1": w1.tolist(), "E_w2": w2.tolist(), "requests": state["rows"]}
+    out = {"slope": fitk(mean), "slope_w1": fitk(w1), "slope_w2": fitk(w2),
+           "stationarity": abs(fitk(w1) - fitk(w2)), "monotone_rises_at_k": rises,
+           "samples": len(T), "times": T.tolist(), "E_mean": mean.tolist(),
+           "E_w1": w1.tolist(), "E_w2": w2.tolist(), "requests": state["rows"]}
+    if state["transfer"] and len(state["transfer"]) == len(T):
+        nu = abs(params["velocity_shear"]) / params["reynolds_number"]
+        eta_visc = 2.0 * nu * float(np.mean(state["palinstrophy"]))
+        flux = b_flux(np.mean(np.asarray(state["transfer"]), axis=0))[: len(mean)]
+        kk = np.arange(fit[0], fit[1] + 1, dtype=float)
+        pi = flux[fit[0]:fit[1] + 1] / eta_visc
+        out.update({"eta_visc": eta_visc, "k_d": (eta_visc / nu ** 3) ** (1.0 / 6.0),
+                    "PiZ_mean": flux.tolist(), "PiZ_over_eta_visc_fit": pi.tolist(),
+                    "flux_mean": float(pi.mean()), "flux_cv": float(pi.std() / pi.mean())})
+        if spec_name == "B2":
+            comp = mean[fit[0]:fit[1] + 1] * kk ** 3 * np.log(kk / B2_KF) ** (1.0 / 3.0)
+            ref = b_kraichnan_reference(fit, B2_KF)
+            out.update({"compensated_cv": float(comp.std() / comp.mean()), "kraichnan_reference": ref,
+                        "excess_over_reference": ref - out["slope"]})
+    return out
 
 
 def test_cp7fb_helpers():
     """The shell sums add up to the kinetic energy (Parseval); the interpolation is exact
     for a band-limited field; a field built to E(k) = k^-4 per mode reads as exactly
     k^-4, monotone, in the angle-averaged spectrum, while its shell sums rise between
-    neighbouring shells (the lattice's mode count); the slope fit recovers a power law."""
+    neighbouring shells (the lattice's mode count); the slope fit recovers a power law;
+    the enstrophy transfer vanishes for one mode and sums to zero for a resolved field."""
     w = b_initial_field(64)
     req = kh_physics.SimulationRequest(grid_nx=64, grid_ny=64, domain_lx=TWO_PI, domain_ly=TWO_PI,
                                        steps=0, perturbation_amplitude=0.0,
@@ -360,6 +516,18 @@ def test_cp7fb_helpers():
     fake = np.zeros(129)
     fake[kk] = 3.0 * kk ** -4.1
     assert abs(b_fit(fake) + 4.1) < 1e-12
+    # Transfer: a single Fourier mode is a steady Euler solution (no transfer); the flux is
+    # the tail sum of the transfer; the transfer of a band-limited random field sums to
+    # zero (the truncated nonlinear term conserves enstrophy) to round-off.
+    x = np.arange(64) * (TWO_PI / 64)
+    X, Y = np.meshgrid(x, x, indexing="ij")
+    tz, pal = b_transfer(np.cos(3 * X + 4 * Y))
+    assert np.max(np.abs(tz)) < 1e-12 and abs(pal - 0.5 * 25 * 0.5) < 1e-12, (np.max(np.abs(tz)), pal)
+    q = np.array([1.0, -2.0, 0.5, 0.25])
+    assert np.allclose(b_flux(q), [-1.25, 0.75, 0.25, 0.0])
+    wb = spectral_upsample(b_initial_field(32), 96)        # band-limited below the 2/3 cut
+    tz, _ = b_transfer(wb)
+    assert abs(tz.sum()) < 1e-12 * np.abs(tz).sum(), (tz.sum(), np.abs(tz).sum())
 
 
 @pytest.mark.slow
@@ -368,7 +536,7 @@ def test_cp7fb_helpers():
 @pytest.mark.parametrize("target", ["oracle"] + BACKEND_NAMES)
 def test_cp7fb_enstrophy_range_slope(target):
     engine = _engine(target)
-    r = b_run(engine)
+    r = b_run(engine, "B1")
     _write(f"cp7fb-{target}.json", dict({"target": target, "spec": "MASTER s3.2 E7"}, **r))
     line = (f"slope {r['slope']:.4f} (w1 {r['slope_w1']:.4f}, w2 {r['slope_w2']:.4f}, "
             f"stationarity {r['stationarity']:.4f}), monotone rises at k {r['monotone_rises_at_k']}")
@@ -376,4 +544,47 @@ def test_cp7fb_enstrophy_range_slope(target):
     assert r["samples"] == 20, f"{target}: {r['samples']} spectra sampled, expected 20"
     assert B_SLOPE[0] <= r["slope"] <= B_SLOPE[1], f"{target}: {line}; gate {B_SLOPE}"
     assert r["stationarity"] <= B_STATIONARITY, f"{target}: {line}; stationarity gate {B_STATIONARITY}"
+    assert not r["monotone_rises_at_k"], f"{target}: {line}; monotone gate {B_MONOTONE}"
+
+
+# B2 gate (E10). Every bound is the oracle reference +- 3 sigma of the procedure (R5), rounded
+# outward: sigma is the larger of a moving-block bootstrap of the 40 window spectra (blocks of
+# 8, 4 time units) and the spread of the scan's three runs at alpha*eta^-1/3 ~ 0.02 (R1, R5,
+# R7), because a 20-unit window cannot sample the condensate's time scale 1/alpha = 100. The
+# compensated spectrum's flatness is reported, not asserted: on a fixed range it measures the
+# same tilt as the slope. Derivation: MASTER-BRIEF E10.
+B2_SLOPE = (-3.64, -3.35)          # reference -3.492, sigma 0.047
+B2_STATIONARITY = 0.20              # reference 0.107, sigma(difference) 0.066
+B2_FLUX_MEAN = (0.82, 1.06)         # reference 0.938, sigma 0.039
+B2_FLUX_CV = 0.12                   # reference 0.064, sigma 0.016
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(os.environ.get("KH_CP7FB2") != "1",
+                    reason="CP-7F-B2 spin-up runs for hours; set KH_CP7FB2=1 (see module docstring)")
+def test_cp7fb2_spinup():
+    """The shared oracle spin-up of B2, on its own: the runner calls it first, so the six
+    targets that follow all start from the same cached field."""
+    omega, t = b2_spinup()
+    assert omega.shape == (512, 512) and np.all(np.isfinite(omega)) and abs(t - B2_T_512) < 1e-6
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(os.environ.get("KH_CP7FB2") != "1",
+                    reason="CP-7F-B2 runs for hours per target; set KH_CP7FB2=1 (see module docstring)")
+@pytest.mark.parametrize("target", ["oracle"] + BACKEND_NAMES)
+def test_cp7fb2_k3_regime(target):
+    engine = _engine(target)
+    r = b_run(engine, "B2")
+    _write(f"cp7fb2-{target}.json", dict({"target": target, "spec": "MASTER s3.2 E10"}, **r))
+    line = (f"slope {r['slope']:.4f} (w1 {r['slope_w1']:.4f}, w2 {r['slope_w2']:.4f}, stationarity "
+            f"{r['stationarity']:.4f}; Kraichnan log reference {r['kraichnan_reference']:.4f}), "
+            f"Pi_Z/eta_visc {r['flux_mean']:.4f} cv {r['flux_cv']:.4f}, compensated cv "
+            f"{r['compensated_cv']:.4f}, k_d {r['k_d']:.1f}, monotone rises at k {r['monotone_rises_at_k']}")
+    print(f"CP-7F-B2 {target}: {line}")
+    assert r["samples"] == B2_WINDOW[1], f"{target}: {r['samples']} spectra, expected {B2_WINDOW[1]}"
+    assert B2_SLOPE[0] <= r["slope"] <= B2_SLOPE[1], f"{target}: {line}; slope gate {B2_SLOPE}"
+    assert r["stationarity"] <= B2_STATIONARITY, f"{target}: {line}; stationarity gate {B2_STATIONARITY}"
+    assert B2_FLUX_MEAN[0] <= r["flux_mean"] <= B2_FLUX_MEAN[1], f"{target}: {line}; flux gate {B2_FLUX_MEAN}"
+    assert r["flux_cv"] <= B2_FLUX_CV, f"{target}: {line}; flux plateau gate {B2_FLUX_CV}"
     assert not r["monotone_rises_at_k"], f"{target}: {line}; monotone gate {B_MONOTONE}"

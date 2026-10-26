@@ -98,7 +98,7 @@ The textbook layer, as of v0.1.0:
 | Testbed | Physics | Result, all six implementations |
 |---|---|---|
 | A — dispersion σ(k) | Linear growth of a tanh layer (Michalke, 1964) | σ_∞ = 0.18818 / 0.18745 at kδ = 0.4 / 0.5, against 0.1881 / 0.1875 (chapter [01](01-what-kh-sim-computes.md) §6) |
-| B — forced 2D turbulence | Energy spectrum slope in the forward cascade (Kraichnan, 1967; McWilliams, 1984) | Slopes −4.12 … −4.16: the finite-Re coherent-vortex regime, steeper than the asymptotic −3, which 256² at Re = 5000 cannot reach |
+| B — forced 2D turbulence | Energy spectrum of the forward (enstrophy) cascade (Kraichnan, 1967, 1971; McWilliams, 1984; Boffetta et al., 2002) | Two stages. B1, forcing at k 10–12, 256², Re = 5000: slopes −4.12 … −4.16, the finite-Re coherent-vortex regime — the fit range lies in the viscous range. B2 (v0.1.5), forcing at k 4–6, 512², Re = 40 000: slope −3.51 on k 12–44 with a flat enstrophy flux (Π_Z/η_ν = 1.05), against −3.22 for Kraichnan's log-corrected k⁻³ on that range; the 0.29 between them is the steepening by the linear drag. Identical in all six |
 | C — vortex-pair merger | Two co-rotating patches merge below a critical separation of about 3.3 radii (Melander, Zabusky and McWilliams, 1988) | Merge at 2.5, 3.0, 3.3 radii; no merger at 3.5 and 4.0; identical classification |
 | D — forced Taylor–Green | A forced single mode is a fixed point of the RK4 map | Every sample within 1e-6 of the analytic amplitude, at five Reynolds numbers |
 | E — *Numerical Recipes* (1986) | Poisson problem of §17.5, convolution of §12.4 | Python, Pascal and Fortran reproduce the printed results (the Poisson grid to its printed precision, the convolution to 2e-16) |
@@ -115,7 +115,9 @@ All of it runs through the same request API you use, so a backend cannot pass by
 
 - Cox, S. M. and Matthews, P. C. (2002). Exponential time differencing for stiff systems. *J. Comput. Phys.* 176, 430–455.
 - Higham, N. J. (2002). *Accuracy and Stability of Numerical Algorithms*, 2nd ed. SIAM.
+- Boffetta, G., Celani, A., Musacchio, S. and Vergassola, M. (2002). Intermittency in two-dimensional Ekman-Navier-Stokes turbulence. *Phys. Rev. E* 66, 026304.
 - Kraichnan, R. H. (1967). Inertial ranges in two-dimensional turbulence. *Phys. Fluids* 10, 1417–1423.
+- Kraichnan, R. H. (1971). Inertial-range transfer in two- and three-dimensional turbulence. *J. Fluid Mech.* 47, 525–535.
 - McWilliams, J. C. (1984). The emergence of isolated coherent vortices in turbulent flow. *J. Fluid Mech.* 146, 21–43.
 - Melander, M. V., Zabusky, N. J. and McWilliams, J. C. (1988). Symmetric vortex merger in two dimensions. *J. Fluid Mech.* 195, 303–340.
 - Michalke, A. (1964). On the inviscid instability of the hyperbolic-tangent velocity profile. *J. Fluid Mech.* 19, 543–556.

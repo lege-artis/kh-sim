@@ -38,6 +38,10 @@
 #   is refused as 400 naming it, before any value is read. Until then such a key was
 #   logged and ignored; the census of the live logs (2026-10-09, 2026-10-24) found
 #   none but the nsteps this module sent on purpose.
+#
+#   Section 7 pins the request size (2026-10-26): a request the contract allows is read
+#   whole - 512^2 with initial_omega is a 5.4 MB body. The Rust backend read at most
+#   2 MiB (axum's default) and answered 413 in plain text; the CP-7F-B2 run found it.
 
 import json
 import math
@@ -631,3 +635,32 @@ def test_conformance_continued_run_equals_the_whole_run(backend_name: str, backe
     assert dev < 1e-12, f"{backend_name}: continued run differs from the whole run by {dev:.2e}"
     assert abs(cont["t_final"] - full["t_final"]) < 1e-9, (
         f"{backend_name}: t_final {cont['t_final']} after continuation, {full['t_final']} whole")
+
+
+# -- 7. Request size (2026-10-26) ---------------------------------------------------
+
+# A 512^2 request carrying initial_omega is a body of ~5.4 MB. The contract allows
+# grids up to 4194304 cells (K8, openapi), but the Rust backend read at most 2 MiB
+# (axum's default body limit) and answered 413 in plain text before the contract was
+# consulted - the CP-7F-B2 run of 2026-10-25 found it (its first 512^2 request).
+LARGE_N = 512
+
+
+@pytest.mark.parametrize("backend_name", BACKEND_NAMES)
+def test_conformance_large_body_is_computed(backend_name: str, backend_urls: dict) -> None:
+    """A request at 512^2 with initial_omega (a body above 2 MiB) is computed, as the
+    oracle computes it."""
+    url = _require(backend_name, backend_urls)
+    x = [2.0 * math.pi * i / LARGE_N for i in range(LARGE_N)]
+    omega = [math.sin(3.0 * a + 0.1) * math.cos(5.0 * b) + 0.25 * math.cos(7.0 * a - 2.0 * b)
+             for a in x for b in x]
+    payload = {"grid_nx": LARGE_N, "grid_ny": LARGE_N, "domain_lx": 2.0 * math.pi,
+               "domain_ly": 2.0 * math.pi, "dt": 0.001, "steps": 1, "reynolds_number": 1000.0,
+               "velocity_shear": 1.0, "perturbation_amplitude": 0.0, "perturbation_mode": 1,
+               "initial_omega": omega}
+    data = json.dumps(payload)
+    assert len(data) > 2 * 1024 * 1024, len(data)
+    body = _ok_body(backend_name, _post(url, data, timeout=300), "512^2 with initial_omega")
+    ref = _oracle_ke(payload)
+    rel = abs(_ke(body) - ref) / abs(ref)
+    assert rel < ORACLE_REL, f"{backend_name}: differs from the oracle by {rel:.2e}"

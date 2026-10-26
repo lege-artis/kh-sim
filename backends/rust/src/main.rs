@@ -8,9 +8,9 @@
 ///
 /// Task: KH-003
 /// Spec: kh-sim/shared/api/openapi.yaml
-use kh_sim_rust::handlers;
+use kh_sim_rust::{contract, handlers};
 
-use axum::{routing::{get, post}, Router};
+use axum::{extract::DefaultBodyLimit, routing::{get, post}, Router};
 use tower_http::{
     cors::{Any, CorsLayer},
     trace::TraceLayer,
@@ -34,6 +34,9 @@ async fn main() {
         .route("/simulate", post(handlers::simulate))
         .route("/health",   get(handlers::health))
         .route("/info",     get(handlers::info))
+        // Every request the contract allows fits (contract::MAX_BODY_BYTES); a larger
+        // body is refused by the handler as a 400 naming "body".
+        .layer(DefaultBodyLimit::max(contract::MAX_BODY_BYTES))
         .layer(TraceLayer::new_for_http())
         .layer(cors);
 

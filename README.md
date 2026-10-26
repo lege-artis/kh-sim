@@ -11,8 +11,10 @@ and against textbook physics.
 
 ## Status
 
-`v0.1.4` — the HTTP backends refuse a request key the contract does not define (400 naming it,
-with a hint for foreign names such as `nsteps`); see [`RELEASE-NOTES-v0.1.4.md`](RELEASE-NOTES-v0.1.4.md).
+`v0.1.5` — the turbulence testbed reaches the asymptotic enstrophy cascade: Kraichnan's k⁻³ with
+its log correction, steepened by the linear drag, with a flat enstrophy flux, in all six
+implementations at 512²; see [`RELEASE-NOTES-v0.1.5.md`](RELEASE-NOTES-v0.1.5.md).
+[`v0.1.4`](RELEASE-NOTES-v0.1.4.md): the HTTP backends refuse a request key the contract does not define.
 Citations (C3) and complexity (C4) of the hand-rolled backends are checked in CI since
 [`v0.1.3`](RELEASE-NOTES-v0.1.3.md) and [`v0.1.2`](RELEASE-NOTES-v0.1.2.md). What is validated and how:
 [`RELEASE-NOTES-v0.1.0.md`](RELEASE-NOTES-v0.1.0.md).
@@ -36,7 +38,7 @@ Three tiers; each chapter links one tier deeper.
 | Version | Scope |
 |---------|-------|
 | v0.1.0 | Six implementations; golden vectors, contract, physics and canonical textbook testbeds; three documentation tiers; license stack, community files, CI |
-| v0.1.x | Shad-tier chapters 2–5; documentation translations; the asymptotic k⁻³ regime of the turbulence testbed at higher Reynolds number |
+| v0.1.x | Shad-tier chapters 2–5; documentation translations |
 | v0.3.0 | Lyapunov estimator + invariant-measure tests |
 | v0.5.0+ | Stretch: GPU bridge, REST microservice form |
 

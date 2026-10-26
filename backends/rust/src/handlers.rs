@@ -10,7 +10,7 @@
 /// request came back as 422 with a plain-text body, grid_nx = 0 panicked the
 /// physics task and dropped the connection, and a blown-up run returned 200 with
 /// null numbers.
-use axum::{body::Bytes, http::StatusCode, response::IntoResponse, Json};
+use axum::{body::Bytes, extract::rejection::BytesRejection, http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 use tracing::{info, warn};
 
@@ -37,7 +37,17 @@ fn is_finite(r: &SimulationResult) -> bool {
 
 // -- POST /simulate -------------------------------------------------------------
 
-pub async fn simulate(body: Bytes) -> axum::response::Response {
+pub async fn simulate(body: Result<Bytes, BytesRejection>) -> axum::response::Response {
+    // A body above contract::MAX_BODY_BYTES (no request the contract allows) or one that
+    // could not be read: 400 in the contract's form, not axum's plain-text 413.
+    let body = match body {
+        Ok(b) => b,
+        Err(e) => return error(StatusCode::BAD_REQUEST,
+                               &format!("request body not read: {e} (limit {} bytes: a request at \
+                                         the {}-cell limit with initial_omega)",
+                                        contract::MAX_BODY_BYTES, contract::MAX_CELLS),
+                               "field", "body"),
+    };
     let req = match contract::parse(&body) {
         Ok(r) => r,
         Err(e) => return error(StatusCode::BAD_REQUEST, &e.message, "field", &e.field),
