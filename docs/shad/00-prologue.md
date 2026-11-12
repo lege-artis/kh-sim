@@ -37,10 +37,10 @@ Chapters are self-contained but written to be read in order; each adds one idea.
 | Chapter | Status | The new thing |
 |---|---|---|
 | [1 — The billows](01-the-billows.md) | v0.1.0 | Where you have seen KH, why a smooth shear will not stay smooth, and a simulation that rolls up the billows and measures how fast they grow |
-| 2 — The vortex and the stream | queued, v0.1.x | Vorticity and stream function — the two-quantity language that makes two-dimensional flow tractable without ever mentioning pressure |
-| 3 — Reading the growth rate | queued, v0.1.x | The dispersion relation: how a 1964 theorem lets the code test itself, and what it takes to make that test fair |
-| 4 — Why six languages | queued, v0.1.x | What "canonical reference" costs: element-wise agreement, and the sign error that matching energy totals never caught |
-| 5 onward — Shear layers in the wild | queued, v0.1.x | Billow clouds and the Richardson number, mixing layers in the ocean, the edge of a jet — each its own chapter |
+| [2 — The vortex and the stream](02-the-vortex-and-the-stream.md) | v0.1.6 | Vorticity and stream function — the two-quantity language that makes two-dimensional flow tractable without ever mentioning pressure |
+| [3 — Reading the growth rate](03-reading-the-growth-rate.md) | v0.1.6 | The dispersion relation: how a 1964 theorem lets the code test itself, and what it takes to make that test fair |
+| [4 — Why six languages](04-why-six-languages.md) | v0.1.6 | What "canonical reference" costs: element-wise agreement, and the sign error that matching energy totals never caught |
+| 5 onward — Shear layers in the wild | queued | Billow clouds and the Richardson number, mixing layers in the ocean, the edge of a jet — each its own chapter |
 
 Each chapter has three figures — the input, the thing that happens, the takeaway — and a runnable script under [`../../examples/shad/`](../../examples/shad/) that renders them. Run a script and you get the same figures back, modulo your Matplotlib's fonts and its views on colour.
 

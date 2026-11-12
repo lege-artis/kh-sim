@@ -106,8 +106,8 @@ After any change, look at the printout before the pictures. If `max_vorticity` o
 - **The same physics with the equations attached:** [engineer tier, chapter 01 — What kh-sim actually computes](../engineer/en/01-what-kh-sim-computes.md).
 - **Running kh-sim on your own initial field:** [engineer tier, chapter 00 — Quick start](../engineer/en/00-quick-start.md).
 - **The rigorous version of the mechanism:** the vorticity-transport and Rayleigh stability equations in [`../../shared/canonical-equations/`](../../shared/canonical-equations/).
-- **Next in this guide** (queued for v0.1.x): the vortex and the stream; reading the growth rate; why six languages; and shear layers in the wild — clouds, oceans, jets.
+- **Next in this guide:** [the vortex and the stream](02-the-vortex-and-the-stream.md), the two-number language of this chapter's simulation, tried on single vortices where the exact answers are known.
 
 ---
 
-**Previous:** [Prologue](00-prologue.md)
+**Previous:** [Prologue](00-prologue.md) · **Next:** [Chapter 2 — The vortex and the stream](02-the-vortex-and-the-stream.md)

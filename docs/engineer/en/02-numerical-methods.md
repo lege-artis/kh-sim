@@ -109,7 +109,7 @@ All of it runs through the same request API you use, so a backend cannot pass by
 
 - **The specification:** [KH-NM](../../../shared/canonical-equations/kh-numerical-methods.md) — every method above with its equations and the per-implementation code mapping.
 - **Running it:** chapter [00](00-quick-start.md); the backends' own `README.md` files under [`backends/`](../../../backends/).
-- **The same story for a general reader:** the shad tier, [chapter 1 — The billows](../../shad/01-the-billows.md), with a script that measures a growth rate and renders the billows.
+- **The same story for a general reader:** the shad tier, [chapter 1 — The billows](../../shad/01-the-billows.md), with a script that measures a growth rate and renders the billows; [chapter 4 — Why six languages](../../shad/04-why-six-languages.md) puts the FFT-convention defect of §2 and a missing 2/3 rule back into the reference and measures what each comparison sees.
 
 ### References
 

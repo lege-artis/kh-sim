@@ -9,10 +9,11 @@ What a reader of docs/ relies on, checked:
     examples/; the scripts are ASCII-only;
   * the code a chapter shows runs, and prints what the chapter says it prints
     (the Hello-World and Taylor-Green snippets, the figure script of engineer 01,
-    the example script of shad 01).
+    the example scripts of shad 01 to 04).
 
-The two script runs take about a minute each:  python -m pytest tests/docs -q
-Needs NumPy and Matplotlib.
+The script runs take between twenty seconds and two minutes each, about six
+minutes together:  python -m pytest tests/docs -q   (-m "not slow" skips them).
+Needs NumPy and Matplotlib; shad 03 also needs SciPy.
 
 ASCII-only source.
 """
@@ -34,10 +35,20 @@ CHAPTERS = [
     DOCS / "engineer" / "en" / "02-numerical-methods.md",
     DOCS / "shad" / "00-prologue.md",
     DOCS / "shad" / "01-the-billows.md",
+    DOCS / "shad" / "02-the-vortex-and-the-stream.md",
+    DOCS / "shad" / "03-reading-the-growth-rate.md",
+    DOCS / "shad" / "04-why-six-languages.md",
 ]
 MARKDOWN = CHAPTERS + [DOCS / "shad" / "README.md"]
 ENGINEER_FIGURE_SCRIPT = DOCS / "engineer" / "en" / "figures" / "render_kh_evolution_3frame.py"
-SHAD_EXAMPLE = EXAMPLES / "shad" / "c1-shear-layers" / "main.py"
+# shad chapter -> (example folder = figure stem, output marker, number of figures)
+SHAD_EXAMPLES = {
+    "01-the-billows.md": ("c1-shear-layers", "c1-output", 3),
+    "02-the-vortex-and-the-stream.md": ("c2-vortex-and-stream", "c2-output", 3),
+    "03-reading-the-growth-rate.md": ("c3-growth-rate", "c3-output", 3),
+    "04-why-six-languages.md": ("c4-six-languages", "c4-output", 2),
+}
+SHAD_SCRIPTS = [EXAMPLES / "shad" / name / "main.py" for name, _, _ in SHAD_EXAMPLES.values()]
 
 MAX_FIGURE_BYTES = 300 * 1024
 # The sanitisation policy's forbidden identifiers (public-mirror context).
@@ -114,7 +125,7 @@ def test_links_resolve_inside_the_public_tree():
 
 def test_figures_present_and_small():
     images = [(md.parent / t).resolve() for md in MARKDOWN for t, img in _links(md) if img]
-    assert len(images) == 4, images                    # engineer 01: 1, shad 01: 3
+    assert len(images) == 12, images                   # engineer 01: 1, shad 01-04: 3+3+3+2
     for p in images:
         assert p.is_file(), p
         assert p.stat().st_size <= MAX_FIGURE_BYTES, f"{p.name}: {p.stat().st_size} bytes"
@@ -132,7 +143,7 @@ def test_no_forbidden_identifiers():
 
 
 def test_scripts_are_ascii():
-    for p in (ENGINEER_FIGURE_SCRIPT, SHAD_EXAMPLE, Path(__file__)):
+    for p in [ENGINEER_FIGURE_SCRIPT, *SHAD_SCRIPTS, Path(__file__)]:
         p.read_bytes().decode("ascii")
 
 
@@ -165,11 +176,13 @@ def test_engineer_figure_script(tmp_path):
 
 
 @pytest.mark.slow
-def test_shad_example(tmp_path):
-    got = _run([str(SHAD_EXAMPLE), "--outdir", str(tmp_path)])
-    expected = [ln.rstrip() for ln in _block_after(CHAPTERS[4], "c1-output")]
+@pytest.mark.parametrize("chapter", sorted(SHAD_EXAMPLES))
+def test_shad_example(chapter, tmp_path):
+    name, marker, nfig = SHAD_EXAMPLES[chapter]
+    got = _run([str(EXAMPLES / "shad" / name / "main.py"), "--outdir", str(tmp_path)])
+    expected = [ln.rstrip() for ln in _block_after(DOCS / "shad" / chapter, marker)]
     strip = lambda lines: [ln for ln in lines if not ln.startswith("wrote ")]  # noqa: E731
     assert strip(got) == strip(expected)
-    for i in (1, 2, 3):
-        png = tmp_path / f"c1-shear-layers-fig{i}.png"
+    for i in range(1, nfig + 1):
+        png = tmp_path / f"{name}-fig{i}.png"
         assert 0 < png.stat().st_size <= MAX_FIGURE_BYTES, png

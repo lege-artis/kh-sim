@@ -11,9 +11,12 @@ and against textbook physics.
 
 ## Status
 
-`v0.1.5` — the turbulence testbed reaches the asymptotic enstrophy cascade: Kraichnan's k⁻³ with
-its log correction, steepened by the linear drag, with a flat enstrophy flux, in all six
-implementations at 512²; see [`RELEASE-NOTES-v0.1.5.md`](RELEASE-NOTES-v0.1.5.md).
+`v0.1.6` — the story tier grows to four chapters: vortices and the stream function, the
+growth-rate curve as the code's self-test, and why six implementations are compared element by
+element; each with a script whose printout the test suite checks. See
+[`RELEASE-NOTES-v0.1.6.md`](RELEASE-NOTES-v0.1.6.md).
+[`v0.1.5`](RELEASE-NOTES-v0.1.5.md): the turbulence testbed reaches the asymptotic enstrophy cascade,
+Kraichnan's k⁻³ with its log correction and drag steepening, in all six implementations at 512².
 [`v0.1.4`](RELEASE-NOTES-v0.1.4.md): the HTTP backends refuse a request key the contract does not define.
 Citations (C3) and complexity (C4) of the hand-rolled backends are checked in CI since
 [`v0.1.3`](RELEASE-NOTES-v0.1.3.md) and [`v0.1.2`](RELEASE-NOTES-v0.1.2.md). What is validated and how:
@@ -38,7 +41,8 @@ Three tiers; each chapter links one tier deeper.
 | Version | Scope |
 |---------|-------|
 | v0.1.0 | Six implementations; golden vectors, contract, physics and canonical textbook testbeds; three documentation tiers; license stack, community files, CI |
-| v0.1.x | Shad-tier chapters 2–5; documentation translations |
+| v0.1.6 | Shad-tier chapters 2–4: the vortex and the stream, reading the growth rate, why six languages |
+| v0.1.x | Shad-tier chapter 5 onward (shear layers in the wild); documentation translations |
 | v0.3.0 | Lyapunov estimator + invariant-measure tests |
 | v0.5.0+ | Stretch: GPU bridge, REST microservice form |
 
